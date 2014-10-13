@@ -14,9 +14,9 @@ typedef struct
     bool flag_non_blink;
     uint8_t *palette_bytes;
     uint8_t *font_bytes;
-    size_t font_bytes_length;
+    uint32_t font_bytes_length;
     uint8_t *image_bytes;
-    size_t image_bytes_length;
+    uint32_t image_bytes_length;
 } XBin_File;
 
 XBin_File* load_xbin(char const *filename);

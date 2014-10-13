@@ -60,9 +60,12 @@ XBin_File* load_xbin(char const *filename)
     }
     if(file->columns > 0 && file->rows > 0)
     {
-        file->image_bytes_length = file->columns * file->rows * 2;
-        file->image_bytes = malloc(file->image_bytes_length);
-        fread(file->image_bytes, 1, file->image_bytes_length, file_ptr);
+        if(!flag_compress)
+        {
+            file->image_bytes_length = file->columns * file->rows * 2;
+            file->image_bytes = malloc(file->image_bytes_length);
+            fread(file->image_bytes, 1, file->image_bytes_length, file_ptr);
+        }
     }
     else
     {
@@ -121,10 +124,10 @@ void debug_xbin_file(XBin_File *file)
     }
     if(file->font_bytes != NULL)
     {
-        printf("Font length (bytes): %ld\n", file->font_bytes_length);
+        printf("Font length (bytes): %d\n", file->font_bytes_length);
     }
     if(file->image_bytes != NULL)
     {
-        printf("Image length (bytes): %ld\n", file->image_bytes_length);
+        printf("Image length (bytes): %d\n", file->image_bytes_length);
     }
 }
