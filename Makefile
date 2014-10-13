@@ -1,6 +1,17 @@
-CXX = clang
-CXXFLAGS = -Wall -c -std=c99 -I/Library/Frameworks/SDL2.framework/Headers
-LDFLAGS = -F/Library/Frameworks -framework SDL2
+UNAME_S := $(shell uname -s)
+
+ifeq ($(UNAME_S),Linux)
+	CXX = gcc
+	CXXFLAGS = -Wall -c -std=c99 `sdl2-config --cflags`
+	LDFLAGS = `sdl2-config --libs`
+endif
+
+ifeq ($(UNAME_S),Darwin)
+	CXX = clang
+	CXXFLAGS = -Wall -c -std=c99 -I/Library/Frameworks/SDL2.framework/Headers
+	LDFLAGS = -F/Library/Frameworks -framework SDL2
+endif
+
 OUT = anscat
 
 all: $(OUT)
@@ -27,4 +38,5 @@ event.o: event.c canvas.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 clean:
+	rm *.o
 	rm $(OUT)

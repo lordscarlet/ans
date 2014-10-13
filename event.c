@@ -1,5 +1,5 @@
 #include <stdbool.h>
-#include <sdl.h>
+#include <SDL.h>
 #include <time.h>
 #include "canvas.h"
 
@@ -29,9 +29,6 @@ void event_loop(size_t width, size_t height, SDL_Renderer *renderer, Canvas *can
     dst_rect.x = (width - canvas->width) / 2; dst_rect.y = 0; dst_rect.w = canvas->width; dst_rect.h = height;
     SDL_Event event;
     bool quit = false;
-    struct timespec delay, sleep_value;
-    delay.tv_sec  = 0;
-    delay.tv_nsec = 9000000;
     update_texture(width, renderer, &y_pos, &dst_rect, texture, canvas, height);
     while(!quit)
     {
@@ -105,7 +102,6 @@ void event_loop(size_t width, size_t height, SDL_Renderer *renderer, Canvas *can
             default:
             break;
         }
-        nanosleep(&delay, &sleep_value);
     }
     SDL_DestroyTexture(texture);
 }

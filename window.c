@@ -1,4 +1,4 @@
-#include <sdl.h>
+#include <SDL.h>
 #include <stdbool.h>
 #include "event.h"
 #include "canvas.h"

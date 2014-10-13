@@ -1,5 +1,5 @@
 #include <stdbool.h>
-#include <sdl.h>
+#include <SDL.h>
 #include "canvas.h"
 #include "xbin.h"
 
