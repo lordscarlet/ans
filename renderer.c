@@ -1,7 +1,7 @@
 #include <stdbool.h>
 #include <SDL.h>
+
 #include "canvas.h"
-#include "xbin.h"
 
 void convert_palette(uint8_t *palette_bytes, uint8_t *palette_rgb)
 {
@@ -46,25 +46,4 @@ void draw_glyph(Canvas *canvas, uint8_t ascii_code, uint8_t foreground, uint8_t 
         }
         i += (canvas->width - font_width) * 3;
     }
-}
-
-Canvas* xbin_file_to_canvas(XBin_File *file)
-{
-    Canvas *canvas = create_canvas(file->columns * 8, file->rows * file->font_height);
-    uint8_t palette_rgb[48];
-    uint8_t font_bits[8 * file->font_height * 256];
-    uint8_t ascii_code, foreground, background;
-    convert_palette(file->palette_bytes, palette_rgb);
-    font_bytes_to_bits(file->font_bytes, file->font_height, font_bits);
-    for(size_t y = 0, i = 0; y < file->rows; y += 1)
-    {
-        for(size_t x = 0; x < file->columns; x += 1, i += 2)
-        {
-            ascii_code = file->image_bytes[i];
-            foreground = file->image_bytes[i + 1] & 0xf;
-            background = file->image_bytes[i + 1] >> 4;
-            draw_glyph(canvas, ascii_code, foreground, background, x, y, palette_rgb, font_bits, 8, file->font_height);
-        }
-    }
-    return canvas;
 }

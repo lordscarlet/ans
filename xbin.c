@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
+
 #include "xbin.h"
 #include "canvas.h"
+#include "renderer.h"
 
 enum Flags
 {
@@ -98,10 +100,10 @@ void free_xbin_file(XBin_File *file)
 
 void debug_xbin_file(XBin_File *file)
 {
-    printf("Columns: %i\n",             file->columns);
-    printf("Rows: %i\n",                file->rows);
-    printf("Font height: %i\n",         file->font_height);
-    printf("512 Characters: ");
+    printf("XBin columns: %i\n",             file->columns);
+    printf("XBin rows: %i\n",                file->rows);
+    printf("XBin font height: %i\n",         file->font_height);
+    printf("XBin 512 Characters: ");
     if(file->flag_char_512)
     {
         printf("Yes\n");
@@ -112,7 +114,7 @@ void debug_xbin_file(XBin_File *file)
     }
     if(file->palette_bytes != NULL)
     {
-        printf("Palette: ");
+        printf("XBin palette: ");
         for(size_t i = 0; i < 48; i += 3) {
             printf("(%d, %d, %d)", file->palette_bytes[i], file->palette_bytes[i + 1], file->palette_bytes[i + 2]);
             if(i < 45)
@@ -124,10 +126,32 @@ void debug_xbin_file(XBin_File *file)
     }
     if(file->font_bytes != NULL)
     {
-        printf("Font length (bytes): %d\n", file->font_bytes_length);
+        printf("XBin font length (bytes): %d\n", file->font_bytes_length);
     }
     if(file->image_bytes != NULL)
     {
-        printf("Image length (bytes): %d\n", file->image_bytes_length);
+        printf("XBin image length (bytes): %d\n", file->image_bytes_length);
     }
+}
+
+Canvas* xbin_file_to_canvas(XBin_File *file)
+{
+    Canvas *canvas = create_canvas(file->columns * 8, file->rows * file->font_height);
+    uint8_t palette_rgb[48];
+    uint8_t font_bits[8 * file->font_height * 256];
+    uint8_t ascii_code, foreground, background;
+    convert_palette(file->palette_bytes, palette_rgb);
+    font_bytes_to_bits(file->font_bytes, file->font_height, font_bits);
+    for(size_t y = 0, i = 0; y < file->rows; y += 1)
+    {
+        for(size_t x = 0; x < file->columns; x += 1, i += 2)
+        {
+            ascii_code = file->image_bytes[i];
+            foreground = file->image_bytes[i + 1] & 0xf;
+            background = file->image_bytes[i + 1] >> 4;
+            draw_glyph(canvas, ascii_code, foreground, background, x, y, palette_rgb, font_bits, 8, file->font_height);
+        }
+    }
+    canvas->font_height = file->font_height;
+    return canvas;
 }

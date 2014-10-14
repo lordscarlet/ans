@@ -1,14 +1,16 @@
 #include <SDL.h>
 #include <stdbool.h>
-#include "event.h"
-#include "canvas.h"
+#include <stdint.h>
 
-bool show_window(Canvas *canvas, bool full_screen, uint8_t font_height)
+#include "canvas.h"
+#include "event.h"
+
+bool show_window(Canvas *canvas, bool full_screen)
 {
     SDL_DisplayMode current;
     SDL_Window *window;
     SDL_Renderer *renderer;
-    size_t width, height;
+    uint32_t width, height;
     if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) != 0)
     {
     	return false;
@@ -16,8 +18,8 @@ bool show_window(Canvas *canvas, bool full_screen, uint8_t font_height)
     if(full_screen)
     {
         SDL_GetCurrentDisplayMode(0, &current);
-        width  = current.w;
-        height = current.h;
+        width  = (uint32_t) current.w;
+        height = (uint32_t) current.h;
         SDL_CreateWindowAndRenderer(width, height, SDL_WINDOW_FULLSCREEN | SDL_WINDOW_OPENGL, &window, &renderer); 
     }
     else
@@ -33,7 +35,7 @@ bool show_window(Canvas *canvas, bool full_screen, uint8_t font_height)
     }
     SDL_ShowCursor(SDL_DISABLE);
     SDL_JoystickEventState(SDL_ENABLE);
-    event_loop(width, height, renderer, canvas, font_height);
+    event_loop(width, height, renderer, canvas);
     SDL_JoystickEventState(SDL_DISABLE);
     SDL_ShowCursor(SDL_ENABLE);
     SDL_DestroyRenderer(renderer);

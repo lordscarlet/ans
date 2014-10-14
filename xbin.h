@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+
 #include "canvas.h"
 
 typedef struct
@@ -24,5 +25,7 @@ XBin_File* load_xbin(char const *filename);
 void free_xbin_file(XBin_File *file);
 
 void debug_xbin_file(XBin_File *file);
+
+Canvas* xbin_file_to_canvas(XBin_File *file);
 
 #endif /* end of include guard: XBIN_H_1304F866 */
