@@ -22,6 +22,50 @@ uint8_t XBIN_DEFAULT_FONT[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0
 
 size_t XBIN_DEFAULT_FONT_LEN = 4096;
 
+void decompress(uint8_t *image_bytes, uint32_t image_bytes_length, FILE *file_ptr)
+{
+    uint8_t p, count, repeat_char, repeat_attr;
+    for(uint32_t i = 0; i < image_bytes_length;)
+    {
+        fread(&p, 1, 1, file_ptr);
+        count = p & 0x3f;
+        switch(p >> 6)
+        {
+            case 1:
+            fread(&repeat_char, 1, 1, file_ptr);
+            for(uint8_t j = 0; j <= count; j += 1, i += 2)
+            {
+                image_bytes[i + 0] = repeat_char;
+                fread(image_bytes + i + 1, 1, 1, file_ptr);
+            }
+            break;
+            case 2:
+            fread(&repeat_attr, 1, 1, file_ptr);
+            for(uint8_t j = 0; j <= count; j += 1, i += 2)
+            {
+                fread(image_bytes + i + 0, 1, 1, file_ptr);
+                image_bytes[i + 1] = repeat_attr;
+            }
+            break;
+            case 3:
+            fread(&repeat_char, 1, 1, file_ptr);
+            fread(&repeat_attr, 1, 1, file_ptr);
+            for(uint8_t j = 0; j <= count; j += 1, i += 2)
+            {
+                image_bytes[i + 0] = repeat_char;
+                image_bytes[i + 1] = repeat_attr;
+            }
+            break;
+            default:
+            for(uint8_t j = 0; j <= count; j += 1, i += 2)
+            {
+                fread(image_bytes + i + 0, 1, 1, file_ptr);
+                fread(image_bytes + i + 1, 1, 1, file_ptr);
+            }
+        }
+    }
+}
+
 XBin_File* load_xbin(char const *filename)
 {
     char id[5];
@@ -71,11 +115,15 @@ XBin_File* load_xbin(char const *filename)
     }
     if(file->columns > 0 && file->rows > 0)
     {
+        file->image_bytes_length = file->columns * file->rows * 2;
+        file->image_bytes = malloc(file->image_bytes_length);
         if(!flag_compress)
         {
-            file->image_bytes_length = file->columns * file->rows * 2;
-            file->image_bytes = malloc(file->image_bytes_length);
             fread(file->image_bytes, 1, file->image_bytes_length, file_ptr);
+        }
+        else
+        {
+            decompress(file->image_bytes, file->image_bytes_length, file_ptr);
         }
     }
     else
