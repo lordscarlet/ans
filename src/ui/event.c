@@ -9,7 +9,7 @@ uint32_t MAX_TEXTURES = 8;
 void draw_textures(size_t width, size_t height, SDL_Renderer *renderer, TextureCollection* textures, int32_t *y_pos)
 {
     SDL_Rect src_rect, dst_rect;
-    if(*y_pos < 0)
+    if(*y_pos < 0 || textures->canvas->height < height)
     {
         *y_pos = 0;
     }
