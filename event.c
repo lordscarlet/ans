@@ -4,7 +4,7 @@
 
 #include "canvas.h"
 
-uint32_t MAX_TEXTURES = 10;
+uint32_t MAX_TEXTURES = 8;
 
 void draw_textures(size_t width, size_t height, SDL_Renderer *renderer, TextureCollection* textures, int32_t *y_pos)
 {
