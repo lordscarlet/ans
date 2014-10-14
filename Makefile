@@ -19,24 +19,24 @@ all: $(OUT)
 $(OUT): main.o xbin.o renderer.o window.o event.o canvas.o
 	$(CXX) $(LDFLAGS) $^ -o $@
 
-main.o: main.c xbin.h canvas.h window.h
+main.o: src/main.c src/file/xbin.h src/image/canvas.h src/ui/window.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
-renderer.o: renderer.c canvas.h
+renderer.o: src/image/renderer.c src/image/canvas.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
-window.o: window.c canvas.h event.h
+window.o: src/ui/window.c src/image/canvas.h src/ui/event.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
-xbin.o: xbin.c xbin.h canvas.h renderer.h
+xbin.o: src/file/xbin.c src/file/xbin.h src/image/canvas.h src/image/renderer.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
-canvas.o: canvas.c canvas.h
+canvas.o: src/image/canvas.c src/image/canvas.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
-event.o: event.c canvas.h
+event.o: src/ui/event.c src/image/canvas.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 clean:
-	rm *.o
-	rm $(OUT)
+	rm -f *.o
+	rm -f $(OUT)
