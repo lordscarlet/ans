@@ -200,6 +200,10 @@ Canvas* xbin_file_to_canvas(XBin_File *file)
             ascii_code = file->image_bytes[i];
             foreground = file->image_bytes[i + 1] & 0xf;
             background = file->image_bytes[i + 1] >> 4;
+            if(file->flag_non_blink && background >= 8)
+            {
+                background -= 8;
+            }
             draw_glyph(canvas, ascii_code, foreground, background, x, y, palette_rgb, font_bits, 8, file->font_height);
         }
     }
