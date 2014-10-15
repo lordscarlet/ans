@@ -21,11 +21,12 @@ TextmodeDisplay* init_window(bool full_screen)
         display->width  = (uint32_t) current.w;
         display->height = (uint32_t) current.h;
         SDL_CreateWindowAndRenderer(display->width, display->height, SDL_WINDOW_FULLSCREEN | SDL_WINDOW_OPENGL, &display->window, &display->renderer);
+        SDL_ShowCursor(SDL_DISABLE);
     }
     else
     {
-        display->width  = 640;
-        display->height = 400;
+        display->width  = 1280;
+        display->height = 800;
         SDL_CreateWindowAndRenderer(display->width, display->height, SDL_WINDOW_OPENGL, &display->window, &display->renderer);
     }
     if(display->window == NULL)
@@ -33,7 +34,6 @@ TextmodeDisplay* init_window(bool full_screen)
         SDL_Quit();
         return NULL;
     }
-    SDL_ShowCursor(SDL_DISABLE);
     SDL_JoystickEventState(SDL_ENABLE);
     return display;
 }
@@ -46,7 +46,10 @@ void update_window(TextmodeDisplay *display, Canvas *canvas)
 void end_window(TextmodeDisplay *display)
 {
     SDL_JoystickEventState(SDL_DISABLE);
-    SDL_ShowCursor(SDL_ENABLE);
+    if(display->full_screen)
+    {
+        SDL_ShowCursor(SDL_ENABLE);
+    }
     SDL_DestroyRenderer(display->renderer);
     SDL_DestroyWindow(display->window);
     SDL_Quit();
