@@ -16,10 +16,13 @@ OUT = anscat
 
 all: $(OUT)
 
-$(OUT): main.o xbin.o renderer.o window.o event.o canvas.o
+$(OUT): main.o file.o xbin.o renderer.o window.o event.o canvas.o
 	$(CXX) $(LDFLAGS) $^ -o $@
 
-main.o: src/main.c src/file/xbin.h src/image/canvas.h src/ui/window.h
+main.o: src/main.c src/file/file.h src/image/canvas.h src/ui/window.h
+	$(CXX) $(CXXFLAGS) $< -o $@
+
+file.o: src/file/file.c src/file/file.h src/image/canvas.h src/file/xbin.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 renderer.o: src/image/renderer.c src/image/canvas.h

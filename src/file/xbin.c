@@ -206,3 +206,12 @@ Canvas* xbin_file_to_canvas(XBin_File *file)
     canvas->font_height = file->font_height;
     return canvas;
 }
+
+Canvas* load_xbin_file_and_generate_canvas(char const *filename)
+{
+    XBin_File* file = load_xbin(filename);
+    debug_xbin_file(file);
+    Canvas *canvas = xbin_file_to_canvas(file);
+    free_xbin_file(file);
+    return canvas;
+}

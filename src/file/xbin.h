@@ -20,12 +20,6 @@ typedef struct
     uint32_t image_bytes_length;
 } XBin_File;
 
-XBin_File* load_xbin(char const *filename);
-
-void free_xbin_file(XBin_File *file);
-
-void debug_xbin_file(XBin_File *file);
-
-Canvas* xbin_file_to_canvas(XBin_File *file);
+Canvas* load_xbin_file_and_generate_canvas(char const *filename);
 
 #endif /* end of include guard: XBIN_H_1304F866 */
