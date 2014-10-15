@@ -25,8 +25,8 @@ TextmodeDisplay* init_window(bool full_screen)
     }
     else
     {
-        display->width  = 1280;
-        display->height = 800;
+        display->width  = 640;
+        display->height = 640;
         SDL_CreateWindowAndRenderer(display->width, display->height, SDL_WINDOW_OPENGL, &display->window, &display->renderer);
     }
     if(display->window == NULL)
@@ -40,6 +40,11 @@ TextmodeDisplay* init_window(bool full_screen)
 
 void update_window(TextmodeDisplay *display, Canvas *canvas)
 {
+    if(!display->full_screen)
+    {
+        display->width = canvas->width;
+        SDL_SetWindowSize(display->window, (int) display->width, (int) display->height);
+    }
     event_loop(display->width, display->height, display->renderer, canvas);
 }
 
