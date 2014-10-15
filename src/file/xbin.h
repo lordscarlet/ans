@@ -13,12 +13,12 @@ typedef struct
     uint8_t font_height;
     bool flag_char_512;
     bool flag_non_blink;
-    uint8_t *palette_bytes;
+    uint8_t palette_bytes[48];
     uint8_t *font_bytes;
     uint32_t font_bytes_length;
     uint8_t *image_bytes;
     uint32_t image_bytes_length;
-} XBin_File;
+} XBinFile;
 
 Canvas* load_xbin_file_and_generate_canvas(char const *filename);
 

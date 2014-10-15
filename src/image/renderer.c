@@ -13,6 +13,9 @@ void convert_palette(uint8_t *palette_bytes, uint8_t *palette_rgb)
 
 void font_bytes_to_bits(uint8_t *font_bytes, uint8_t font_height, uint8_t *font_bits)
 {
+    /*
+        TODO deal with 512 character xbins
+    */
     for(size_t i = 0, k = 0; i < font_height * 256; i += 1)
     {
         for(int8_t j = 7; j >= 0; j -= 1, k += 1)

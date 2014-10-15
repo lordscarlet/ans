@@ -66,13 +66,13 @@ void decompress(uint8_t *image_bytes, uint32_t image_bytes_length, FILE *file_pt
     }
 }
 
-XBin_File* load_xbin(char const *filename)
+XBinFile* load_xbin(char const *filename)
 {
     char id[5];
     uint8_t eof, flags;
     bool flag_palette, flag_font, flag_compress;
     FILE *file_ptr = fopen(filename, "r");
-    XBin_File *file = malloc(sizeof(XBin_File));
+    XBinFile *file = malloc(sizeof(XBinFile));
     fread(id,                 1, 4, file_ptr);
     id[4] = 0;
     fread(&eof,               1, 1, file_ptr);
@@ -85,7 +85,6 @@ XBin_File* load_xbin(char const *filename)
     flag_compress        = (flags & FLAG_COMPRESS)  == FLAG_COMPRESS;
     file->flag_non_blink = (flags & FLAG_NON_BLINK) == FLAG_NON_BLINK;
     file->flag_char_512  = (flags & FLAG_CHAR_512)  == FLAG_CHAR_512;
-    file->palette_bytes = malloc(XBIN_DEFAULT_PAL_LEN);
     if(flag_palette)
     {
         fread(file->palette_bytes, 1, XBIN_DEFAULT_PAL_LEN, file_ptr);
@@ -135,11 +134,10 @@ XBin_File* load_xbin(char const *filename)
     return file;
 }
 
-void free_xbin_file(XBin_File *file)
+void free_xbin_file(XBinFile *file)
 {
     if(file != NULL)
     {
-        free(file->palette_bytes);
         free(file->font_bytes);
         if(file->image_bytes != NULL)
         {
@@ -149,7 +147,7 @@ void free_xbin_file(XBin_File *file)
     }
 }
 
-void debug_xbin_file(XBin_File *file)
+void debug_xbin_file(XBinFile *file)
 {
     printf("XBin columns: %i\n",             file->columns);
     printf("XBin rows: %i\n",                file->rows);
@@ -163,29 +161,23 @@ void debug_xbin_file(XBin_File *file)
     {
         printf("No\n");
     }
-    if(file->palette_bytes != NULL)
-    {
-        printf("XBin palette: ");
-        for(size_t i = 0; i < 48; i += 3) {
-            printf("(%d, %d, %d)", file->palette_bytes[i], file->palette_bytes[i + 1], file->palette_bytes[i + 2]);
-            if(i < 45)
-            {
-                printf(", ");
-            }
+    printf("XBin palette: ");
+    for(size_t i = 0; i < 48; i += 3) {
+        printf("(%d, %d, %d)", file->palette_bytes[i], file->palette_bytes[i + 1], file->palette_bytes[i + 2]);
+        if(i < 45)
+        {
+            printf(", ");
         }
-        printf("\n");
     }
-    if(file->font_bytes != NULL)
-    {
-        printf("XBin font length (bytes): %d\n", file->font_bytes_length);
-    }
+    printf("\n");
+    printf("XBin font length (bytes): %d\n", file->font_bytes_length);
     if(file->image_bytes != NULL)
     {
         printf("XBin image length (bytes): %d\n", file->image_bytes_length);
     }
 }
 
-Canvas* xbin_file_to_canvas(XBin_File *file)
+Canvas* xbin_file_to_canvas(XBinFile *file)
 {
     Canvas *canvas = create_canvas(file->columns * 8, file->rows * file->font_height);
     uint8_t palette_rgb[48];
@@ -213,7 +205,7 @@ Canvas* xbin_file_to_canvas(XBin_File *file)
 
 Canvas* load_xbin_file_and_generate_canvas(char const *filename)
 {
-    XBin_File* file = load_xbin(filename);
+    XBinFile* file = load_xbin(filename);
     debug_xbin_file(file);
     Canvas *canvas = xbin_file_to_canvas(file);
     free_xbin_file(file);

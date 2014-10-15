@@ -1,6 +1,7 @@
 #include "file.h"
 #include "../image/canvas.h"
 #include "xbin.h"
+#include "artworx.h"
 
 FileType extension_check(char const *filename)
 {
@@ -50,8 +51,10 @@ Canvas* read_file_and_generate_canvas(char const *filename)
     switch(extension_check(filename))
     {
         case UNKNOWN:
+        return NULL;
         break;
         case ARTWORX:
+        return load_artworx_file_and_generate_canvas(filename);
         break;
         case ANSI:
         break;
