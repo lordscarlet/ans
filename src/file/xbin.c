@@ -192,7 +192,7 @@ Canvas* xbin_file_to_canvas(XBinFile *file)
             ascii_code = file->image_bytes[i];
             foreground = file->image_bytes[i + 1] & 0xf;
             background = file->image_bytes[i + 1] >> 4;
-            if(file->flag_non_blink && background >= 8)
+            if(!file->flag_non_blink && background >= 8)
             {
                 background -= 8;
             }
