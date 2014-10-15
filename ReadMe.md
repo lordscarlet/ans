@@ -14,4 +14,4 @@ Use a [Raspbian](http://www.raspberrypi.org/downloads/) image, and install the S
 
 # Usage
 
-    ./anscat <filename>
+    anscat [file ...]

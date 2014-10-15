@@ -25,7 +25,7 @@ main.o: src/main.c src/file/xbin.h src/image/canvas.h src/ui/window.h
 renderer.o: src/image/renderer.c src/image/canvas.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
-window.o: src/ui/window.c src/image/canvas.h src/ui/event.h
+window.o: src/ui/window.c src/ui/window.h src/image/canvas.h src/ui/event.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 xbin.o: src/file/xbin.c src/file/xbin.h src/image/canvas.h src/image/renderer.h

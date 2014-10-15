@@ -1,45 +1,54 @@
-#include <SDL.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <SDL.h>
 
+#include "window.h"
 #include "../image/canvas.h"
 #include "event.h"
 
-bool show_window(Canvas *canvas, bool full_screen)
+TextmodeDisplay* init_window(bool full_screen)
 {
+    TextmodeDisplay *display = malloc(sizeof(TextmodeDisplay));
     SDL_DisplayMode current;
-    SDL_Window *window;
-    SDL_Renderer *renderer;
-    uint32_t width, height;
+    display->full_screen = full_screen;
     if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) != 0)
     {
-    	return false;
+    	return NULL;
     }
-    if(full_screen)
+    if(display->full_screen)
     {
         SDL_GetCurrentDisplayMode(0, &current);
-        width  = (uint32_t) current.w;
-        height = (uint32_t) current.h;
-        SDL_CreateWindowAndRenderer(width, height, SDL_WINDOW_FULLSCREEN | SDL_WINDOW_OPENGL, &window, &renderer); 
+        display->width  = (uint32_t) current.w;
+        display->height = (uint32_t) current.h;
+        SDL_CreateWindowAndRenderer(display->width, display->height, SDL_WINDOW_FULLSCREEN | SDL_WINDOW_OPENGL, &display->window, &display->renderer);
     }
     else
     {
-        width  = canvas->width;
-        height = 400;
-        SDL_CreateWindowAndRenderer(width, height, SDL_WINDOW_OPENGL, &window, &renderer); 
+        display->width  = 640;
+        display->height = 400;
+        SDL_CreateWindowAndRenderer(display->width, display->height, SDL_WINDOW_OPENGL, &display->window, &display->renderer);
     }
-    if(window == NULL)
+    if(display->window == NULL)
     {
         SDL_Quit();
-        return false;
+        return NULL;
     }
     SDL_ShowCursor(SDL_DISABLE);
     SDL_JoystickEventState(SDL_ENABLE);
-    event_loop(width, height, renderer, canvas);
+    return display;
+}
+
+void update_window(TextmodeDisplay *display, Canvas *canvas)
+{
+    event_loop(display->width, display->height, display->renderer, canvas);
+}
+
+void end_window(TextmodeDisplay *display)
+{
     SDL_JoystickEventState(SDL_DISABLE);
     SDL_ShowCursor(SDL_ENABLE);
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
+    SDL_DestroyRenderer(display->renderer);
+    SDL_DestroyWindow(display->window);
     SDL_Quit();
-    return true;
+    free(display);
 }
