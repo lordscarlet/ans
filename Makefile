@@ -22,7 +22,7 @@ $(OUT): main.o file.o sauce.o artworx.o binary.o icedraw.o tundra.o xbin.o rende
 main.o: src/main.c src/file/file.h src/image/canvas.h src/ui/window.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
-file.o: src/file/file.c src/file/file.h src/image/canvas.h src/file/artworx.h src/file/binary.h src/file/icedraw.h src/file/tundra.h src/file/xbin.h
+file.o: src/file/file.c src/file/file.h src/image/canvas.h src/file/formats/artworx.h src/file/formats/binary.h src/file/formats/icedraw.h src/file/formats/tundra.h src/file/formats/xbin.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 sauce.o: src/file/sauce.c src/file/sauce.h
@@ -34,19 +34,19 @@ renderer.o: src/image/renderer.c src/image/canvas.h
 window.o: src/ui/window.c src/ui/window.h src/image/canvas.h src/ui/event.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
-artworx.o: src/file/artworx.c src/file/artworx.h src/file/sauce.h src/image/canvas.h src/image/renderer.h
+artworx.o: src/file/formats/artworx.c src/file/formats/artworx.h src/file/sauce.h src/image/canvas.h src/image/renderer.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
-binary.o: src/file/binary.c src/file/binary.h src/file/sauce.h src/image/canvas.h src/image/renderer.h
+binary.o: src/file/formats/binary.c src/file/formats/binary.h src/file/sauce.h src/image/canvas.h src/image/renderer.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
-icedraw.o: src/file/icedraw.c src/file/icedraw.h src/file/sauce.h src/image/canvas.h src/image/renderer.h
+icedraw.o: src/file/formats/icedraw.c src/file/formats/icedraw.h src/file/sauce.h src/image/canvas.h src/image/renderer.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
-tundra.o: src/file/tundra.c src/file/tundra.h src/file/sauce.h src/image/canvas.h src/image/renderer.h
+tundra.o: src/file/formats/tundra.c src/file/formats/tundra.h src/file/sauce.h src/image/canvas.h src/image/renderer.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
-xbin.o: src/file/xbin.c src/file/xbin.h src/file/sauce.h src/image/canvas.h src/image/renderer.h
+xbin.o: src/file/formats/xbin.c src/file/formats/xbin.h src/file/sauce.h src/image/canvas.h src/image/renderer.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 canvas.o: src/image/canvas.c src/image/canvas.h

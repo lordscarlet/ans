@@ -1,10 +1,10 @@
 #include "file.h"
 #include "../image/canvas.h"
-#include "artworx.h"
-#include "binary.h"
-#include "icedraw.h"
-#include "tundra.h"
-#include "xbin.h"
+#include "formats/artworx.h"
+#include "formats/binary.h"
+#include "formats/icedraw.h"
+#include "formats/tundra.h"
+#include "formats/xbin.h"
 
 FileType extension_check(char const *filename)
 {
