@@ -48,6 +48,10 @@ TextureCollection* create_textures(SDL_Renderer *renderer, Canvas *canvas)
     textures->canvas = canvas;
     textures->max_height = TEXTURE_MAX_HEIGHT;
     textures->final_height = textures->canvas->height % textures->max_height;
+    if(textures->final_height == 0)
+    {
+        textures->final_height = textures->max_height;
+    }
     textures->length = (uint32_t) ceill((double) canvas->height / (double) textures->max_height);
     if(textures->length > 0)
     {
