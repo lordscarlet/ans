@@ -11,6 +11,7 @@ Sauce* get_sauce(FILE *file_ptr)
     long current = ftell(file_ptr);
     long size;
     char eof, header[5], version[2];
+    uint8_t flags;
     fseek(file_ptr, 0L, SEEK_END);
     size = ftell(file_ptr);
     if(size > 129L)
@@ -34,7 +35,10 @@ Sauce* get_sauce(FILE *file_ptr)
             fread(&sauce->t_info_3,  2,  1, file_ptr);
             fread(&sauce->t_info_4,  2,  1, file_ptr);
             fread(&sauce->comments,  1,  1, file_ptr);
-            fread(&sauce->t_flags,   1,  1, file_ptr);
+            fread(&flags,            1,  1, file_ptr);
+            sauce->non_blink =      (flags & 1) == 1;
+            sauce->letter_spacing = (flags >> 1) & 3;
+            sauce->aspect_ratio =   (flags >> 3) & 3;
             fread(sauce->t_info_s,   1, 22, file_ptr);
         }
     }
@@ -68,7 +72,47 @@ void debug_sauce(Sauce *sauce)
     printf("Sauce TInfo3: %d\n",    sauce->t_info_3);
     printf("Sauce TInfo4: %d\n",    sauce->t_info_4);
     printf("Sauce comments: %d\n",  sauce->comments);
-    printf("Sauce flags: %d\n",     sauce->t_flags);
+    printf("Sauce non-blink (iCE color) mode: ");
+    if(sauce->non_blink)
+    {
+        printf("Yes\n");
+    }
+    else
+    {
+        printf("No\n");
+    }
+    printf("Sauce letter spacing: ");
+    switch(sauce->letter_spacing)
+    {
+        case NO_LETTER_SPACE_PREFERENCE:
+        printf("No preference\n");
+        break;
+        case EIGHT_PIXEL:
+        printf("8 pixel\n");
+        break;
+        case NINE_PIXEL:
+        printf("9 pixel\n");
+        break;
+        case INVALID_LETTER_SPACE:
+        printf("Invalid value\n");
+        break;
+    }
+    printf("Sauce aspect ratio: ");
+    switch(sauce->aspect_ratio)
+    {
+        case NO_ASPECT_RATIO_PREFERENCE:
+        printf("No preference\n");
+        break;
+        case LEGACY:
+        printf("Legacy device\n");
+        break;
+        case MODERN:
+        printf("Modern device\n");
+        break;
+        case INVALID_ASPECT_RATIO:
+        printf("Invalid value\n");
+        break;
+    }
     printf("Sauce TInfoS: ");
     print_sauce_string(sauce->t_info_s, sizeof(sauce->t_info_s));
 }
