@@ -26,7 +26,7 @@ Sauce* get_sauce(FILE *file_ptr)
             fread(sauce->title,      1, 35, file_ptr);
             fread(sauce->author,     1, 20, file_ptr);
             fread(sauce->group,      1, 20, file_ptr);
-            fread(sauce->date,       1,  6, file_ptr);
+            fread(sauce->date,       1,  8, file_ptr);
             fread(&sauce->file_size, 4,  1, file_ptr);
             fread(&sauce->data_type, 1,  1, file_ptr);
             fread(&sauce->file_type, 1,  1, file_ptr);
