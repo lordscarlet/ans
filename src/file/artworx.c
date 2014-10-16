@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "artworx.h"
+#include "sauce.h"
 #include "../image/canvas.h"
 #include "../image/renderer.h"
 
@@ -16,7 +17,8 @@ ArtworxFile* load_artworx(char const *filename)
     FILE *file_ptr = fopen(filename, "r");
     ArtworxFile *file = malloc(sizeof(ArtworxFile));
     uint8_t full_palette[ADF_PALETTE_LENGTH];
-    long length;
+    file->sauce = get_sauce(file_ptr);
+    file->actual_file_size = get_actual_file_size(file_ptr, file->sauce);
     fread(&version_number, 1, ADF_VERSION_LENGTH, file_ptr);
     fread(full_palette, 1, ADF_PALETTE_LENGTH, file_ptr);
     for(uint8_t i = 0; i < 16; i += 1)
@@ -27,13 +29,10 @@ ArtworxFile* load_artworx(char const *filename)
         }
     }
     fread(file->font_bytes, 1, ADF_FONT_LENGTH, file_ptr);
-    fseek(file_ptr, 0L, SEEK_END);
-    length = ftell(file_ptr) - ADF_VERSION_LENGTH - ADF_PALETTE_LENGTH - ADF_FONT_LENGTH;
-    fseek(file_ptr, (long) (ADF_VERSION_LENGTH + ADF_PALETTE_LENGTH + ADF_FONT_LENGTH), SEEK_SET);
-    file->image_bytes_length = (uint32_t) length;
+    file->image_bytes_length = file->actual_file_size - (ADF_VERSION_LENGTH + ADF_PALETTE_LENGTH + ADF_FONT_LENGTH);
     file->rows = (uint16_t) (file->image_bytes_length / 2 / 80);
-    file->image_bytes = malloc((size_t) length);
-    fread(file->image_bytes, 1, (size_t) length, file_ptr);
+    file->image_bytes = malloc((size_t) file->image_bytes_length);
+    fread(file->image_bytes, 1, (size_t) file->image_bytes_length, file_ptr);
     return file;
 }
 
@@ -42,6 +41,10 @@ void free_artworx_file(ArtworxFile *file)
     if(file != NULL)
     {
         free(file->image_bytes);
+        if(file->sauce != NULL)
+        {
+            free(file->sauce);
+        }
         free(file);
     }
 }
@@ -59,6 +62,11 @@ void debug_artworx_file(ArtworxFile *file)
     }
     printf("\n");
     printf("Artworx image length (bytes): %d\n", file->image_bytes_length);
+    printf("Artworx actual file size (excluding Sauce record and comments, in bytes): %d\n", file->actual_file_size);
+    if(file->sauce != NULL)
+    {
+        debug_sauce(file->sauce);
+    }
 }
 
 Canvas* artworx_file_to_canvas(ArtworxFile *file)

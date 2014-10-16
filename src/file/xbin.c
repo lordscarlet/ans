@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "xbin.h"
+#include "sauce.h"
 #include "../image/canvas.h"
 #include "../image/renderer.h"
 
@@ -73,6 +74,8 @@ XBinFile* load_xbin(char const *filename)
     bool flag_palette, flag_font, flag_compress;
     FILE *file_ptr = fopen(filename, "r");
     XBinFile *file = malloc(sizeof(XBinFile));
+    file->sauce = get_sauce(file_ptr);
+    file->actual_file_size = get_actual_file_size(file_ptr, file->sauce);
     fread(id,                 1, 4, file_ptr);
     id[4] = 0;
     fread(&eof,               1, 1, file_ptr);
@@ -143,6 +146,10 @@ void free_xbin_file(XBinFile *file)
         {
             free(file->image_bytes);
         }
+        if(file->sauce != NULL)
+        {
+            free(file->sauce);
+        }
         free(file);
     }
 }
@@ -174,6 +181,11 @@ void debug_xbin_file(XBinFile *file)
     if(file->image_bytes != NULL)
     {
         printf("XBin image length (bytes): %d\n", file->image_bytes_length);
+    }
+    printf("XBin actual file size (excluding Sauce record and comments, in bytes): %d\n", file->actual_file_size);
+    if(file->sauce != NULL)
+    {
+        debug_sauce(file->sauce);
     }
 }
 

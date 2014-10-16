@@ -5,6 +5,7 @@
 #include <stdbool.h>
 
 #include "../image/canvas.h"
+#include "sauce.h"
 
 typedef struct
 {
@@ -18,6 +19,8 @@ typedef struct
     uint32_t font_bytes_length;
     uint8_t *image_bytes;
     uint32_t image_bytes_length;
+    uint32_t actual_file_size;
+    Sauce *sauce;
 } XBinFile;
 
 Canvas* load_xbin_file_and_generate_canvas(char const *filename);

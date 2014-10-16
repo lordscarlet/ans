@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "sauce.h"
 #include "../image/canvas.h"
 
 typedef struct
@@ -13,6 +14,8 @@ typedef struct
     uint16_t rows;
     uint8_t *image_bytes;
     uint32_t image_bytes_length;
+    uint32_t actual_file_size;
+    Sauce *sauce;
 } ArtworxFile;
 
 Canvas* load_artworx_file_and_generate_canvas(char const *filename);
