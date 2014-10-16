@@ -25,27 +25,43 @@ void font_bytes_to_bits(uint8_t *font_bytes, uint8_t font_height, uint8_t *font_
     }
 }
 
-void draw_glyph(Canvas *canvas, uint8_t ascii_code, uint8_t foreground, uint8_t background, uint16_t x, uint16_t y, uint8_t *palette_rgb, uint8_t *font_bits, uint8_t font_width, uint8_t font_height)
+void draw_rgb_glyph(Canvas *canvas, uint8_t ascii_code, uint8_t *foreground, uint8_t *background, uint16_t x, uint16_t y, uint8_t *font_bits, uint8_t font_width, uint8_t font_height)
 {
-    uint32_t ascii_code_pos        = ascii_code * font_width * font_height;
-    uint8_t palette_foreground_pos = foreground * 3;
-    uint8_t palette_background_pos = background * 3;
-    uint8_t palette_pos;
+    uint32_t ascii_code_pos = ascii_code * font_width * font_height;
     for(size_t font_y = 0, i = (y * font_height * canvas->width + x * font_width) * 3; font_y < font_height; font_y += 1)
     {
         for(size_t font_x = 0; font_x < font_width; font_x += 1, i += 3, ascii_code_pos += 1)
         {
             if(font_bits[ascii_code_pos] == 1)
             {
-                palette_pos = palette_foreground_pos;
+                memcpy(canvas->data + i, foreground, 3);
             }
             else
             {
-                palette_pos = palette_background_pos;
+                memcpy(canvas->data + i, background, 3);
             }
-            canvas->data[i + 0] = palette_rgb[palette_pos + 0];
-            canvas->data[i + 1] = palette_rgb[palette_pos + 1];
-            canvas->data[i + 2] = palette_rgb[palette_pos + 2];
+        }
+        i += (canvas->width - font_width) * 3;
+    }
+}
+
+void draw_glyph(Canvas *canvas, uint8_t ascii_code, uint8_t foreground, uint8_t background, uint16_t x, uint16_t y, uint8_t *palette_rgb, uint8_t *font_bits, uint8_t font_width, uint8_t font_height)
+{
+    uint32_t ascii_code_pos         = ascii_code * font_width * font_height;
+    uint8_t  palette_foreground_pos = foreground * 3;
+    uint8_t  palette_background_pos = background * 3;
+    for(size_t font_y = 0, i = (y * font_height * canvas->width + x * font_width) * 3; font_y < font_height; font_y += 1)
+    {
+        for(size_t font_x = 0; font_x < font_width; font_x += 1, i += 3, ascii_code_pos += 1)
+        {
+            if(font_bits[ascii_code_pos] == 1)
+            {
+                memcpy(canvas->data + i, palette_rgb + palette_foreground_pos, 3);
+            }
+            else
+            {
+                memcpy(canvas->data + i, palette_rgb + palette_background_pos, 3);
+            }
         }
         i += (canvas->width - font_width) * 3;
     }

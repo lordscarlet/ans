@@ -3,6 +3,7 @@
 #include "artworx.h"
 #include "binary.h"
 #include "icedraw.h"
+#include "tundra.h"
 #include "xbin.h"
 
 FileType extension_check(char const *filename)
@@ -37,7 +38,7 @@ FileType extension_check(char const *filename)
     {
         return PC_BOARD;
     }
-    if(strcasecmp(dot, "tun") == 0)
+    if(strcasecmp(dot, "tnd") == 0)
     {
         return TUNDRA;
     }
@@ -71,6 +72,7 @@ Canvas* read_file_and_generate_canvas(char const *filename)
         case PC_BOARD:
         break;
         case TUNDRA:
+        return load_tundra_file_and_generate_canvas(filename);
         break;
         case XBIN:
         return load_xbin_file_and_generate_canvas(filename);

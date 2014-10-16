@@ -10,15 +10,15 @@ uint32_t ICE_DRAW_FONT_SIZE           = 4096;
 uint32_t ICE_DRAW_PALETTE_SIZE        = 48;
 uint32_t ICE_DRAW_IMAGE_DATA_START    = 12;
 uint8_t  ICE_DRAW_DEFAULT_FONT_HEIGHT = 16;
-uint32_t IMAGE_CHUNK_LENGTH           = 10000 * 80 * 2;
+uint32_t ICE_DRAW_IMAGE_CHUNK_LENGTH  = 10000 * 80 * 2;
 
-void* realloc_if_necessary(uint8_t *image_bytes, uint32_t *limit, uint32_t current_size)
+void* realloc_ice_draw_image_bytes_if_necessary(uint8_t *image_bytes, uint32_t *limit, uint32_t current_size)
 {
     void* alloc = image_bytes;
     if(current_size == *limit)
     {
-        alloc = realloc(image_bytes, *limit + IMAGE_CHUNK_LENGTH);
-        *limit += IMAGE_CHUNK_LENGTH;
+        *limit += ICE_DRAW_IMAGE_CHUNK_LENGTH;
+        alloc = realloc(image_bytes, *limit);
     }
     return alloc;
 }
@@ -28,7 +28,7 @@ IceDrawFile* load_ice_draw(char const *filename)
     IceDrawFile *file = malloc(sizeof(IceDrawFile));
     FILE        *file_ptr = fopen(filename, "r");
     uint32_t    image_data_end;
-    uint32_t    image_bytes_limit = IMAGE_CHUNK_LENGTH;
+    uint32_t    image_bytes_limit = ICE_DRAW_IMAGE_CHUNK_LENGTH;
     uint16_t    c, uncompressed_data_size = 0;
     uint8_t     loop, ascii_code, attribute;
     file->sauce = get_sauce(file_ptr);
@@ -51,14 +51,14 @@ IceDrawFile* load_ice_draw(char const *filename)
             i += 4;
             for(size_t k = 0; k < loop; k += 1, uncompressed_data_size += 2)
             {
-                file->image_bytes = realloc_if_necessary(file->image_bytes, &image_bytes_limit, uncompressed_data_size);
+                file->image_bytes = realloc_ice_draw_image_bytes_if_necessary(file->image_bytes, &image_bytes_limit, uncompressed_data_size);
                 file->image_bytes[uncompressed_data_size + 0] = ascii_code;
                 file->image_bytes[uncompressed_data_size + 1] = attribute;
             }
         }
         else
         {
-            file->image_bytes = realloc_if_necessary(file->image_bytes, &image_bytes_limit, uncompressed_data_size);
+            file->image_bytes = realloc_ice_draw_image_bytes_if_necessary(file->image_bytes, &image_bytes_limit, uncompressed_data_size);
             file->image_bytes[uncompressed_data_size + 0] = ascii_code;
             file->image_bytes[uncompressed_data_size + 1] = attribute;
             uncompressed_data_size += 2;
