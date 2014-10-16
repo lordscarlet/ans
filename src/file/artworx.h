@@ -2,7 +2,6 @@
 #define ARTWORX_H_22DDD857
 
 #include <stdint.h>
-#include <stdbool.h>
 
 #include "sauce.h"
 #include "../image/canvas.h"
