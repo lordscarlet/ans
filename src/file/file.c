@@ -1,7 +1,8 @@
 #include "file.h"
 #include "../image/canvas.h"
-#include "xbin.h"
 #include "artworx.h"
+#include "binary.h"
+#include "xbin.h"
 
 FileType extension_check(char const *filename)
 {
@@ -61,6 +62,7 @@ Canvas* read_file_and_generate_canvas(char const *filename)
         case ANSIEDIT:
         break;
         case BINARY:
+        return load_binary_file_and_generate_canvas(filename);
         break;
         case ICE_DRAW:
         break;

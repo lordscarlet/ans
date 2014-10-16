@@ -21,6 +21,7 @@ int main(int argc, char const *argv[])
             canvas = read_file_and_generate_canvas(argv[i]);
             if(canvas != NULL)
             {
+                debug_canvas(canvas);
                 update_window(display, canvas);
                 free_canvas(canvas);
             }
