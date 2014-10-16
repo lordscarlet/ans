@@ -2,6 +2,7 @@
 #include "../image/canvas.h"
 #include "artworx.h"
 #include "binary.h"
+#include "icedraw.h"
 #include "xbin.h"
 
 FileType extension_check(char const *filename)
@@ -65,6 +66,7 @@ Canvas* read_file_and_generate_canvas(char const *filename)
         return load_binary_file_and_generate_canvas(filename);
         break;
         case ICE_DRAW:
+        return load_ice_draw_file_and_generate_canvas(filename);
         break;
         case PC_BOARD:
         break;
