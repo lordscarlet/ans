@@ -19,6 +19,7 @@ BinaryFile* load_binary(char const *filename)
     file->rows = file->actual_file_size / 2 / 160;
     file->image_bytes = malloc(file->actual_file_size);
     fread(file->image_bytes, 1, file->actual_file_size, file_ptr);
+    fclose(file_ptr);
     return file;
 }
 

@@ -33,6 +33,7 @@ ArtworxFile* load_artworx(char const *filename)
     file->rows = (uint16_t) (file->image_bytes_length / 2 / 80);
     file->image_bytes = malloc((size_t) file->image_bytes_length);
     fread(file->image_bytes, 1, (size_t) file->image_bytes_length, file_ptr);
+    fclose(file_ptr);
     return file;
 }
 

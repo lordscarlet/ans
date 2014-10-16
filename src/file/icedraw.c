@@ -69,6 +69,7 @@ IceDrawFile* load_ice_draw(char const *filename)
     fseek(file_ptr, (long) file->actual_file_size - (ICE_DRAW_FONT_SIZE + ICE_DRAW_PALETTE_SIZE), SEEK_SET);
     fread(file->font_bytes,    1, ICE_DRAW_FONT_SIZE,    file_ptr);
     fread(file->palette_bytes, 1, ICE_DRAW_PALETTE_SIZE, file_ptr);
+    fclose(file_ptr);
     return file;
 }
 
