@@ -16,13 +16,13 @@ OUT = anscat
 
 all: $(OUT)
 
-$(OUT): main.o file.o sauce.o artworx.o binary.o icedraw.o tundra.o xbin.o renderer.o window.o event.o canvas.o
+$(OUT): main.o file.o sauce.o artworx.o binary.o icedraw.o pcboard.o tundra.o xbin.o renderer.o window.o event.o canvas.o
 	$(CXX) $(LDFLAGS) $^ -o $@
 
 main.o: src/main.c src/file/file.h src/image/canvas.h src/ui/window.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
-file.o: src/file/file.c src/file/file.h src/image/canvas.h src/file/formats/artworx.h src/file/formats/binary.h src/file/formats/icedraw.h src/file/formats/tundra.h src/file/formats/xbin.h
+file.o: src/file/file.c src/file/file.h src/image/canvas.h src/file/formats/artworx.h src/file/formats/binary.h src/file/formats/icedraw.h src/file/formats/pcboard.h src/file/formats/tundra.h src/file/formats/xbin.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 sauce.o: src/file/sauce.c src/file/sauce.h
@@ -41,6 +41,9 @@ binary.o: src/file/formats/binary.c src/file/formats/binary.h src/file/sauce.h s
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 icedraw.o: src/file/formats/icedraw.c src/file/formats/icedraw.h src/file/sauce.h src/image/canvas.h src/image/renderer.h
+	$(CXX) $(CXXFLAGS) $< -o $@
+
+pcboard.o: src/file/formats/pcboard.c src/file/formats/pcboard.h src/file/sauce.h src/image/canvas.h src/image/renderer.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 tundra.o: src/file/formats/tundra.c src/file/formats/tundra.h src/file/sauce.h src/image/canvas.h src/image/renderer.h

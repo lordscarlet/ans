@@ -3,6 +3,7 @@
 #include "formats/artworx.h"
 #include "formats/binary.h"
 #include "formats/icedraw.h"
+#include "formats/pcboard.h"
 #include "formats/tundra.h"
 #include "formats/xbin.h"
 
@@ -70,6 +71,7 @@ Canvas* read_file_and_generate_canvas(char const *filename)
         return load_ice_draw_file_and_generate_canvas(filename);
         break;
         case PC_BOARD:
+        return load_pcboard_file_and_generate_canvas(filename);
         break;
         case TUNDRA:
         return load_tundra_file_and_generate_canvas(filename);
