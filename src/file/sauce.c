@@ -135,3 +135,15 @@ uint32_t get_actual_file_size(FILE *file_ptr, Sauce *sauce)
     }
     return size - (5 + sauce->comments * 64 + 129);
 }
+
+uint16_t t_info_1(Sauce *sauce, uint16_t default_value)
+{
+    if(sauce != NULL)
+    {
+        if(sauce->t_info_1 > 0)
+        {
+            return sauce->t_info_1;
+        }
+    }
+    return default_value;
+}
