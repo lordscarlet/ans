@@ -8,6 +8,7 @@
 
 typedef struct
 {
+    uint16_t columns;
     uint16_t rows;
     uint8_t *image_bytes;
     uint32_t actual_file_size;
