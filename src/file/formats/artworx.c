@@ -5,6 +5,7 @@
 #include "../sauce.h"
 #include "../../image/canvas.h"
 #include "../../image/renderer.h"
+#include "font.h"
 
 uint8_t ADF_PALETTE_ORDERING[] = {0, 1, 2, 3, 4, 5, 20, 7, 56, 57, 58, 59, 60, 61, 62, 63};
 size_t  ADF_VERSION_LENGTH     = 1;
@@ -28,7 +29,7 @@ ArtworxFile* load_artworx(char const *filename)
             file->palette_bytes[to] = full_palette[from];
         }
     }
-    fread(file->font_bytes, 1, ADF_FONT_LENGTH, file_ptr);
+    file->font = load_8x16x256_font(file_ptr);
     file->image_bytes_length = file->actual_file_size - (ADF_VERSION_LENGTH + ADF_PALETTE_LENGTH + ADF_FONT_LENGTH);
     file->rows = (uint16_t) (file->image_bytes_length / 2 / 80);
     file->image_bytes = malloc((size_t) file->image_bytes_length);
@@ -46,6 +47,7 @@ void free_artworx_file(ArtworxFile *file)
         {
             free(file->sauce);
         }
+        free_font(file->font);
         free(file);
     }
 }
@@ -74,10 +76,8 @@ Canvas* artworx_file_to_canvas(ArtworxFile *file)
 {
     Canvas *canvas = create_canvas(640, file->rows * 16);
     uint8_t palette_rgb[48];
-    uint8_t font_bits[8 * 16 * 256];
     uint8_t ascii_code, foreground, background;
     convert_palette(file->palette_bytes, palette_rgb);
-    font_bytes_to_bits(file->font_bytes, 16, font_bits);
     for(size_t y = 0, i = 0; y < file->rows; y += 1)
     {
         for(size_t x = 0; x < 80; x += 1, i += 2)
@@ -85,10 +85,10 @@ Canvas* artworx_file_to_canvas(ArtworxFile *file)
             ascii_code = file->image_bytes[i];
             foreground = file->image_bytes[i + 1] & 0xf;
             background = file->image_bytes[i + 1] >> 4;
-            draw_glyph(canvas, ascii_code, foreground, background, x, y, palette_rgb, font_bits, 8, 16);
+            draw_glyph(canvas, ascii_code, foreground, background, x, y, palette_rgb, file->font);
         }
     }
-    canvas->font_height = 16;
+    canvas->font_height = file->font->height;
     return canvas;
 }
 

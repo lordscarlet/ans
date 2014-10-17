@@ -5,6 +5,7 @@
 #include "../sauce.h"
 #include "../../image/canvas.h"
 #include "../../image/renderer.h"
+#include "font.h"
 
 uint32_t ICE_DRAW_FONT_SIZE           = 4096;
 uint32_t ICE_DRAW_PALETTE_SIZE        = 48;
@@ -67,7 +68,7 @@ IceDrawFile* load_ice_draw(char const *filename)
     file->rows = uncompressed_data_size / 2 / 80;
     file->image_bytes = realloc(file->image_bytes, file->rows * 80 * 2);
     fseek(file_ptr, (long) file->actual_file_size - (ICE_DRAW_FONT_SIZE + ICE_DRAW_PALETTE_SIZE), SEEK_SET);
-    fread(file->font_bytes,    1, ICE_DRAW_FONT_SIZE,    file_ptr);
+    file->font = load_8x16x256_font(file_ptr);
     fread(file->palette_bytes, 1, ICE_DRAW_PALETTE_SIZE, file_ptr);
     fclose(file_ptr);
     return file;
@@ -82,6 +83,7 @@ void free_ice_draw_file(IceDrawFile *file)
             free(file->sauce);
         }
         free(file->image_bytes);
+        free_font(file->font);
         free(file);
     }
 }
@@ -97,12 +99,10 @@ void debug_ice_draw_file(IceDrawFile *file)
 
 Canvas* ice_draw_file_to_canvas(IceDrawFile *file)
 {
-    Canvas *canvas = create_canvas(640, file->rows * ICE_DRAW_DEFAULT_FONT_HEIGHT);
+    Canvas *canvas = create_canvas(80 * file->font->width, file->rows * file->font->height);
     uint8_t palette_rgb[48];
-    uint8_t font_bits[8 * ICE_DRAW_DEFAULT_FONT_HEIGHT * 256];
     uint8_t ascii_code, foreground, background;
     convert_palette(file->palette_bytes, palette_rgb);
-    font_bytes_to_bits(file->font_bytes, ICE_DRAW_DEFAULT_FONT_HEIGHT, font_bits);
     for(size_t y = 0, i = 0; y < file->rows; y += 1)
     {
         for(size_t x = 0; x < 80; x += 1, i += 2)
@@ -110,10 +110,10 @@ Canvas* ice_draw_file_to_canvas(IceDrawFile *file)
             ascii_code = file->image_bytes[i];
             foreground = file->image_bytes[i + 1] & 0xf;
             background = file->image_bytes[i + 1] >> 4;
-            draw_glyph(canvas, ascii_code, foreground, background, x, y, palette_rgb, font_bits, 8, ICE_DRAW_DEFAULT_FONT_HEIGHT);
+            draw_glyph(canvas, ascii_code, foreground, background, x, y, palette_rgb, file->font);
         }
     }
-    canvas->font_height = ICE_DRAW_DEFAULT_FONT_HEIGHT;
+    canvas->font_height = file->font->height;
     return canvas;
 }
 

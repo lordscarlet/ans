@@ -5,13 +5,14 @@
 
 #include "../sauce.h"
 #include "../../image/canvas.h"
+#include "font.h"
 
 typedef struct
 {
-    uint8_t palette_bytes[48];
-    uint8_t font_bytes[4096];
+    uint8_t  palette_bytes[48];
+    Font     *font;
     uint16_t rows;
-    uint8_t *image_bytes;
+    uint8_t  *image_bytes;
     uint32_t image_bytes_length;
     uint32_t actual_file_size;
     Sauce *sauce;
