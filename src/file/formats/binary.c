@@ -5,10 +5,10 @@
 #include "../sauce.h"
 #include "../../image/canvas.h"
 #include "../../image/renderer.h"
+#include "palette.h"
 #include "font.h"
 
 uint16_t BINARY_DEFAULT_COLUMNS = 160;
-uint8_t BINARY_DEFAULT_PAL[]    = {0x00, 0x00, 0x00, 0x00, 0x00, 0x2a, 0x00, 0x2a, 0x00, 0x00, 0x2a, 0x2a, 0x2a, 0x00, 0x00, 0x2a, 0x00, 0x2a, 0x2a, 0x15, 0x00, 0x2a, 0x2a, 0x2a, 0x15, 0x15, 0x15, 0x15, 0x15, 0x3f, 0x15, 0x3f, 0x15, 0x15, 0x3f, 0x3f, 0x3f, 0x15, 0x15, 0x3f, 0x15, 0x3f, 0x3f, 0x3f, 0x15, 0x3f, 0x3f, 0x3f};
 
 BinaryFile* load_binary(char const *filename)
 {
@@ -16,7 +16,7 @@ BinaryFile* load_binary(char const *filename)
     FILE *file_ptr = fopen(filename, "r");
     file->sauce = get_sauce(file_ptr);
     file->actual_file_size = get_actual_file_size(file_ptr, file->sauce);
-    file->rows = file->actual_file_size / 2 / 160;
+    file->rows = file->actual_file_size / 2 / BINARY_DEFAULT_COLUMNS;
     file->image_bytes = malloc(file->actual_file_size);
     fread(file->image_bytes, 1, file->actual_file_size, file_ptr);
     fclose(file_ptr);
@@ -48,9 +48,9 @@ void debug_binary_file(BinaryFile *file)
 
 Canvas* binary_file_to_canvas(BinaryFile *file)
 {
-    Font *font = get_preset_font(IBM_VGA_8x16);
-    Canvas *canvas = create_canvas(BINARY_DEFAULT_COLUMNS * font->width, file->rows * font->height);
-    uint8_t palette_rgb[48];
+    Palette *palette = get_preset_palette(BINARY_PALETTE);
+    Font       *font = get_preset_font(IBM_VGA_8x16);
+    Canvas   *canvas = create_canvas(BINARY_DEFAULT_COLUMNS * font->width, file->rows * font->height);
     uint8_t ascii_code, foreground, background;
     bool non_blink;
     if(file->sauce != NULL)
@@ -61,10 +61,9 @@ Canvas* binary_file_to_canvas(BinaryFile *file)
     {
         non_blink = false;
     }
-    convert_palette(BINARY_DEFAULT_PAL, palette_rgb);
-    for(uint16_t y = 0, i = 0; y < file->rows; y += 1)
+    for(uint32_t y = 0, i = 0; y < file->rows; y += 1)
     {
-        for(uint16_t x = 0; x < BINARY_DEFAULT_COLUMNS; x += 1, i += 2)
+        for(uint32_t x = 0; x < BINARY_DEFAULT_COLUMNS; x += 1, i += 2)
         {
             ascii_code = file->image_bytes[i];
             foreground = file->image_bytes[i + 1] & 0xf;
@@ -73,10 +72,11 @@ Canvas* binary_file_to_canvas(BinaryFile *file)
             {
                 background -= 8;
             }
-            draw_glyph(canvas, ascii_code, foreground, background, x, y, palette_rgb, font);
+            draw_glyph(canvas, ascii_code, foreground, background, x, y, palette, font);
         }
     }
     canvas->font_height = 16;
+    free_palette(palette);
     free_font(font);
     return canvas;
 }

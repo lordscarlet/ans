@@ -6,6 +6,7 @@
 
 #include "../../image/canvas.h"
 #include "../sauce.h"
+#include "palette.h"
 #include "font.h"
 
 typedef struct
@@ -15,7 +16,7 @@ typedef struct
     uint8_t  font_height;
     bool     flag_char_512;
     bool     flag_non_blink;
-    uint8_t  palette_bytes[48];
+    Palette  *palette;
     Font     *font;
     uint8_t  *image_bytes;
     uint32_t image_bytes_length;

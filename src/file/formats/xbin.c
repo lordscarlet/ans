@@ -5,6 +5,7 @@
 #include "../sauce.h"
 #include "../../image/canvas.h"
 #include "../../image/renderer.h"
+#include "palette.h"
 #include "font.h"
 
 enum Flags
@@ -15,10 +16,6 @@ enum Flags
     FLAG_NON_BLINK = 8,
     FLAG_CHAR_512  = 16
 };
-
-uint8_t XBIN_DEFAULT_PAL[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x2a, 0x00, 0x2a, 0x00, 0x00, 0x2a, 0x2a, 0x2a, 0x00, 0x00, 0x2a, 0x00, 0x2a, 0x2a, 0x15, 0x00, 0x2a, 0x2a, 0x2a, 0x15, 0x15, 0x15, 0x15, 0x15, 0x3f, 0x15, 0x3f, 0x15, 0x15, 0x3f, 0x3f, 0x3f, 0x15, 0x15, 0x3f, 0x15, 0x3f, 0x3f, 0x3f, 0x15, 0x3f, 0x3f, 0x3f};
-
-size_t XBIN_DEFAULT_PAL_LEN = 48;
 
 void decompress(uint8_t *image_bytes, uint32_t image_bytes_length, FILE *file_ptr)
 {
@@ -87,11 +84,11 @@ XBinFile* load_xbin(char const *filename)
     file->flag_char_512  = (flags & FLAG_CHAR_512)  == FLAG_CHAR_512;
     if(flag_palette)
     {
-        fread(file->palette_bytes, 1, XBIN_DEFAULT_PAL_LEN, file_ptr);
+        file->palette = load_palette(file_ptr);
     }
     else
     {
-        memcpy(file->palette_bytes, &XBIN_DEFAULT_PAL, XBIN_DEFAULT_PAL_LEN);
+        file->palette = get_preset_palette(BINARY_PALETTE);
     }
     if(flag_font)
     {
@@ -142,6 +139,7 @@ void free_xbin_file(XBinFile *file)
         {
             free(file->sauce);
         }
+        free_palette(file->palette);
         free_font(file->font);
         free(file);
     }
@@ -161,14 +159,23 @@ void debug_xbin_file(XBinFile *file)
         printf("No\n");
     }
     printf("XBin palette: ");
-    for(size_t i = 0; i < 48; i += 3) {
-        printf("(%d, %d, %d)", file->palette_bytes[i], file->palette_bytes[i + 1], file->palette_bytes[i + 2]);
-        if(i < 45)
-        {
-            printf(", ");
+    if(file->palette->type == CUSTOM_PALETTE)
+    {
+        printf("Included in file\n");
+        printf("XBin palette values: ");
+        for(size_t i = 0; i < 48; i += 3) {
+            printf("(%d, %d, %d)", file->palette->bytes[i], file->palette->bytes[i + 1], file->palette->bytes[i + 2]);
+            if(i < 45)
+            {
+                printf(", ");
+            }
         }
+        printf("\n");
     }
-    printf("\n");
+    else
+    {
+        printf("None included\n");
+    }
     printf("XBin font: ");
     if(file->font->type == CUSTOM_FONT)
     {
@@ -193,12 +200,10 @@ void debug_xbin_file(XBinFile *file)
 Canvas* xbin_file_to_canvas(XBinFile *file)
 {
     Canvas  *canvas = create_canvas(file->columns * file->font->width, file->rows * file->font->height);
-    uint8_t palette_rgb[48];
     uint8_t ascii_code, foreground, background;
-    convert_palette(file->palette_bytes, palette_rgb);
-    for(size_t y = 0, i = 0; y < file->rows; y += 1)
+    for(uint32_t y = 0, i = 0; y < file->rows; y += 1)
     {
-        for(size_t x = 0; x < file->columns; x += 1, i += 2)
+        for(uint32_t x = 0; x < file->columns; x += 1, i += 2)
         {
             ascii_code = file->image_bytes[i];
             foreground = file->image_bytes[i + 1] & 0xf;
@@ -207,7 +212,7 @@ Canvas* xbin_file_to_canvas(XBinFile *file)
             {
                 background -= 8;
             }
-            draw_glyph(canvas, ascii_code, foreground, background, x, y, palette_rgb, file->font);
+            draw_glyph(canvas, ascii_code, foreground, background, x, y, file->palette, file->font);
         }
     }
     canvas->font_height = file->font->height;

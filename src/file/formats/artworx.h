@@ -5,15 +5,15 @@
 
 #include "../sauce.h"
 #include "../../image/canvas.h"
+#include "palette.h"
 #include "font.h"
 
 typedef struct
 {
-    uint8_t  palette_bytes[48];
+    Palette  *palette;
     Font     *font;
     uint16_t rows;
     uint8_t  *image_bytes;
-    uint32_t image_bytes_length;
     uint32_t actual_file_size;
     Sauce *sauce;
 } ArtworxFile;

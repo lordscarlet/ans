@@ -5,6 +5,7 @@
 #include "../sauce.h"
 #include "../../image/canvas.h"
 #include "../../image/renderer.h"
+#include "palette.h"
 #include "font.h"
 
 uint32_t ICE_DRAW_FONT_SIZE           = 4096;
@@ -68,8 +69,8 @@ IceDrawFile* load_ice_draw(char const *filename)
     file->rows = uncompressed_data_size / 2 / 80;
     file->image_bytes = realloc(file->image_bytes, file->rows * 80 * 2);
     fseek(file_ptr, (long) file->actual_file_size - (ICE_DRAW_FONT_SIZE + ICE_DRAW_PALETTE_SIZE), SEEK_SET);
-    file->font = load_8x16x256_font(file_ptr);
-    fread(file->palette_bytes, 1, ICE_DRAW_PALETTE_SIZE, file_ptr);
+    file->font    = load_8x16x256_font(file_ptr);
+    file->palette = load_palette(file_ptr);
     fclose(file_ptr);
     return file;
 }
@@ -83,6 +84,7 @@ void free_ice_draw_file(IceDrawFile *file)
             free(file->sauce);
         }
         free(file->image_bytes);
+        free_palette(file->palette);
         free_font(file->font);
         free(file);
     }
@@ -90,6 +92,9 @@ void free_ice_draw_file(IceDrawFile *file)
 
 void debug_ice_draw_file(IceDrawFile *file)
 {
+    /*
+        TODO add debug
+    */
     printf("Ice Draw actual file size (excluding Sauce record and comments, in bytes): %d\n", file->actual_file_size);
     if(file->sauce != NULL)
     {
@@ -100,17 +105,15 @@ void debug_ice_draw_file(IceDrawFile *file)
 Canvas* ice_draw_file_to_canvas(IceDrawFile *file)
 {
     Canvas *canvas = create_canvas(80 * file->font->width, file->rows * file->font->height);
-    uint8_t palette_rgb[48];
     uint8_t ascii_code, foreground, background;
-    convert_palette(file->palette_bytes, palette_rgb);
-    for(size_t y = 0, i = 0; y < file->rows; y += 1)
+    for(uint32_t y = 0, i = 0; y < file->rows; y += 1)
     {
-        for(size_t x = 0; x < 80; x += 1, i += 2)
+        for(uint32_t x = 0; x < 80; x += 1, i += 2)
         {
             ascii_code = file->image_bytes[i];
             foreground = file->image_bytes[i + 1] & 0xf;
             background = file->image_bytes[i + 1] >> 4;
-            draw_glyph(canvas, ascii_code, foreground, background, x, y, palette_rgb, file->font);
+            draw_glyph(canvas, ascii_code, foreground, background, x, y, file->palette, file->font);
         }
     }
     canvas->font_height = file->font->height;

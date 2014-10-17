@@ -5,13 +5,13 @@
 #include "../sauce.h"
 #include "../../image/canvas.h"
 #include "../../image/renderer.h"
+#include "palette.h"
 #include "font.h"
 
 char     *PC_BOARD_ATTRIBUTE         = "X";
 char     *PC_BOARD_CLS               = "CLS";
 char     *PC_BOARD_POS               = "POS:";
 uint32_t PCBOARD_IMAGE_CHUNK_LENGTH  = 10000;
-uint8_t  PCBOARD_DEFAULT_PAL[]       = {0x00, 0x00, 0x00, 0x00, 0x00, 0x2a, 0x00, 0x2a, 0x00, 0x00, 0x2a, 0x2a, 0x2a, 0x00, 0x00, 0x2a, 0x00, 0x2a, 0x2a, 0x15, 0x00, 0x2a, 0x2a, 0x2a, 0x15, 0x15, 0x15, 0x15, 0x15, 0x3f, 0x15, 0x3f, 0x15, 0x15, 0x3f, 0x3f, 0x3f, 0x15, 0x15, 0x3f, 0x15, 0x3f, 0x3f, 0x3f, 0x15, 0x3f, 0x3f, 0x3f};
 
 bool look_ahead(uint8_t *data, uint32_t pos, uint32_t data_length, char *string)
 {
@@ -175,11 +175,10 @@ void debug_pcboard_file(PCBoardFile *file)
 
 Canvas* pcboard_file_to_canvas(PCBoardFile *file)
 {
-    Font *font = get_preset_font(IBM_VGA_8x16);
-    Canvas *canvas = create_canvas(file->columns * font->width, file->rows * font->height);
-    uint8_t palette_rgb[48];
+    Palette *palette = get_preset_palette(BINARY_PALETTE);
+    Font       *font = get_preset_font(IBM_VGA_8x16);
+    Canvas   *canvas = create_canvas(file->columns * font->width, file->rows * font->height);
     uint8_t ascii_code, foreground, background;
-    convert_palette(PCBOARD_DEFAULT_PAL, palette_rgb);
     for(uint32_t y = 0, i = 0; y < file->rows; y += 1)
     {
         for(uint32_t x = 0; x < file->columns; x += 1, i += 2)
@@ -187,10 +186,11 @@ Canvas* pcboard_file_to_canvas(PCBoardFile *file)
             ascii_code = file->image_bytes[i];
             foreground = file->image_bytes[i + 1] & 0xf;
             background = file->image_bytes[i + 1] >> 4;
-            draw_glyph(canvas, ascii_code, foreground, background, x, y, palette_rgb, font);
+            draw_glyph(canvas, ascii_code, foreground, background, x, y, palette, font);
         }
     }
     canvas->font_height = font->height;
+    free_palette(palette);
     free_font(font);
     return canvas;
 }

@@ -2,15 +2,8 @@
 #include <SDL.h>
 
 #include "canvas.h"
+#include "../file/formats/palette.h"
 #include "../file/formats/font.h"
-
-void convert_palette(uint8_t *palette_bytes, uint8_t *palette_rgb)
-{
-    for(size_t i = 0; i < 48; i += 1)
-    {
-        palette_rgb[i] = palette_bytes[i] << 2 | palette_bytes[i] >> 4;
-    }
-}
 
 void draw_rgb_glyph(Canvas *canvas, uint8_t ascii_code, uint8_t *foreground, uint8_t *background, uint16_t x, uint16_t y, Font *font)
 {
@@ -32,7 +25,7 @@ void draw_rgb_glyph(Canvas *canvas, uint8_t ascii_code, uint8_t *foreground, uin
     }
 }
 
-void draw_glyph(Canvas *canvas, uint8_t ascii_code, uint8_t foreground, uint8_t background, uint16_t x, uint16_t y, uint8_t *palette_rgb, Font *font)
+void draw_glyph(Canvas *canvas, uint8_t ascii_code, uint8_t foreground, uint8_t background, uint16_t x, uint16_t y, Palette *palette, Font *font)
 {
     uint32_t ascii_code_pos         = ascii_code * font->width * font->height;
     uint8_t  palette_foreground_pos = foreground * 3;
@@ -43,11 +36,11 @@ void draw_glyph(Canvas *canvas, uint8_t ascii_code, uint8_t foreground, uint8_t 
         {
             if(font->bits[ascii_code_pos] == 1)
             {
-                memcpy(canvas->data + i, palette_rgb + palette_foreground_pos, 3);
+                memcpy(canvas->data + i, palette->rgb_bytes + palette_foreground_pos, 3);
             }
             else
             {
-                memcpy(canvas->data + i, palette_rgb + palette_background_pos, 3);
+                memcpy(canvas->data + i, palette->rgb_bytes + palette_background_pos, 3);
             }
         }
         i += (canvas->width - font->width) * 3;
