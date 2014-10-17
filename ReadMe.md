@@ -16,7 +16,7 @@ Then install libudev-dev and the SDL2 development libraries. I would recommended
 
 # Usage
 
-    anscat [file ...]
+    ans [file ...]
 
 At the moment Artworx, Binary, Ice Draw, PCBoard, Tundra, and XBin (files with extensions adf, bin, idf, pcb, tnd, and xb) files are supported.
 

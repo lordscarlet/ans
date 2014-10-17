@@ -12,7 +12,7 @@ ifeq ($(UNAME_S),Darwin)
 	LDFLAGS = -F/Library/Frameworks -framework SDL2
 endif
 
-OUT = anscat
+OUT = ans
 
 all: $(OUT)
 
