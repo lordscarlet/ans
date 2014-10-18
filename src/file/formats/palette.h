@@ -2,6 +2,7 @@
 #define PALETTE_H_4C592A4D
 
 #include <stdint.h>
+#include <stdio.h>
 
 typedef enum {
     CUSTOM_PALETTE,
