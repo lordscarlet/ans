@@ -5,7 +5,7 @@
 
 typedef enum {
     CUSTOM_FONT,
-    IBM_VGA_8x16
+    CP437_8x16
 } FontType;
 
 typedef struct {

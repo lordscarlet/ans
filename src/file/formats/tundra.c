@@ -35,7 +35,7 @@ void realloc_tundra_image_bytes_if_necessary(TundraFile *file, uint32_t *limit, 
 TundraFile* load_tundra(char const *filename)
 {
     TundraFile *file = malloc(sizeof(TundraFile));
-    file->font = get_preset_font(IBM_VGA_8x16);
+    file->font = get_preset_font(CP437_8x16);
     FILE       *file_ptr = fopen(filename, "r");
     uint8_t    magic_number[9], ascii_code;
     uint8_t    *foreground = calloc(3, 1);

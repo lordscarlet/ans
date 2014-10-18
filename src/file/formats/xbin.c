@@ -103,7 +103,7 @@ XBinFile* load_xbin(char const *filename)
     }
     else
     {
-        file->font = get_preset_font(IBM_VGA_8x16);
+        file->font = get_preset_font(CP437_8x16);
     }
     if(file->columns > 0 && file->rows > 0)
     {

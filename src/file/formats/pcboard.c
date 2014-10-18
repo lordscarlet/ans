@@ -58,7 +58,7 @@ PCBoardFile* load_pcboard(char const *filename)
 {
     PCBoardFile *file = malloc(sizeof(PCBoardFile));
     file->palette = get_preset_palette(BINARY_PALETTE);
-    file->font = get_preset_font(IBM_VGA_8x16);
+    file->font = get_preset_font(CP437_8x16);
     FILE     *file_ptr = fopen(filename, "r");
     uint8_t  *ascii_code, foreground = 7, background = 0, x = 0, y = 0;
     uint32_t image_bytes_limit;

@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 #include "font.h"
-#include "fonts/ibm_vga_8x16.h"
+#include "fonts/cp437_8x16.h"
 
 void generate_bits(Font *font)
 {
@@ -22,12 +22,12 @@ Font* get_preset_font(FontType type)
     font->type = type;
     switch(type)
     {
-        case IBM_VGA_8x16:
-        font->width  = ibm_vga_8x16_width;
-        font->height = ibm_vga_8x16_height;
-        font->length = ibm_vga_8x16_length;
-        font->bytes  = ibm_vga_8x16;
-        font->name   = ibm_vga_8x16_name;
+        case CP437_8x16:
+        font->width  = cp437_8x16_width;
+        font->height = cp437_8x16_height;
+        font->length = cp437_8x16_length;
+        font->bytes  = cp437_8x16;
+        font->name   = cp437_8x16_name;
         generate_bits(font);
         return font;
         default:

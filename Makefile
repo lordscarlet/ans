@@ -31,7 +31,7 @@ sauce.o: src/file/sauce.c src/file/sauce.h
 palette.o: src/file/formats/palette.c src/file/formats/palette.h src/file/formats/palettes/binary_palette.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
-font.o: src/file/formats/font.c src/file/formats/font.h src/file/formats/fonts/ibm_vga_8x16.h
+font.o: src/file/formats/font.c src/file/formats/font.h src/file/formats/fonts/cp437_8x16.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 renderer.o: src/image/renderer.c src/image/canvas.h src/file/formats/palette.h src/file/formats/font.h

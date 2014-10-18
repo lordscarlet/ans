@@ -14,7 +14,7 @@ BinaryFile* load_binary(char const *filename)
 {
     BinaryFile *file = malloc(sizeof(BinaryFile));
     file->palette    = get_preset_palette(BINARY_PALETTE);
-    file->font       = get_preset_font(IBM_VGA_8x16);
+    file->font       = get_preset_font(CP437_8x16);
     FILE *file_ptr = fopen(filename, "r");
     file->sauce = get_sauce(file_ptr);
     file->actual_file_size = get_actual_file_size(file_ptr, file->sauce);
