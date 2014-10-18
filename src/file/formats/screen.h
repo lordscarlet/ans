@@ -52,6 +52,6 @@ Canvas* screen_to_canvas(Screen *screen);
 
 uint16_t get_actual_columns(Screen *screen);
 
-void change_columns(Screen *screen, uint16_t new_columns);
+void trim_columns(Screen *screen, uint16_t new_columns);
 
 #endif /* end of include guard: SCREEN_H_43004382 */

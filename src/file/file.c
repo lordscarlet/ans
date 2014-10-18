@@ -122,7 +122,7 @@ Canvas* read_file_and_generate_canvas(char const *filename)
         case DIZ:
         file = load_ascii_file(filename);
         actual_columns = get_actual_columns(file->screen);
-        change_columns(file->screen, actual_columns);
+        trim_columns(file->screen, actual_columns);
         break;
         case ICE_DRAW:
         file = load_ice_draw_file(filename);

@@ -402,7 +402,7 @@ uint16_t get_actual_columns(Screen *screen)
     return max_x + 1;
 }
 
-void change_columns(Screen *screen, uint16_t new_columns)
+void trim_columns(Screen *screen, uint16_t new_columns)
 {
     uint8_t *new_data;
     switch(screen->type)
