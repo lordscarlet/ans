@@ -1,11 +1,11 @@
 #include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 
 #include "screen.h"
 #include "palette.h"
 #include "font.h"
 #include "../sauce.h"
-#include "../../image/canvas.h"
 
 uint32_t SCREEN_CHUNK_LENGTH = 10000;
 
@@ -143,48 +143,6 @@ void free_screen(Screen *screen)
     }
 }
 
-void draw_rgb_glyph(Canvas *canvas, uint8_t ascii_code, uint8_t *foreground, uint8_t *background, uint16_t x, uint16_t y, Font *font)
-{
-    uint32_t ascii_code_pos = ascii_code * font->width * font->height;
-    for(size_t font_y = 0, i = (y * font->height * canvas->width + x * font->width) * 3; font_y < font->height; font_y += 1)
-    {
-        for(size_t font_x = 0; font_x < font->width; font_x += 1, i += 3, ascii_code_pos += 1)
-        {
-            if(font->bits[ascii_code_pos] == 1)
-            {
-                memcpy(canvas->data + i, foreground, 3);
-            }
-            else
-            {
-                memcpy(canvas->data + i, background, 3);
-            }
-        }
-        i += (canvas->width - font->width) * 3;
-    }
-}
-
-void draw_glyph(Canvas *canvas, uint8_t ascii_code, uint8_t foreground, uint8_t background, uint16_t x, uint16_t y, Palette *palette, Font *font)
-{
-    uint32_t ascii_code_pos         = ascii_code * font->width * font->height;
-    uint8_t  palette_foreground_pos = foreground * 3;
-    uint8_t  palette_background_pos = background * 3;
-    for(size_t font_y = 0, i = (y * font->height * canvas->width + x * font->width) * 3; font_y < font->height; font_y += 1)
-    {
-        for(size_t font_x = 0; font_x < font->width; font_x += 1, i += 3, ascii_code_pos += 1)
-        {
-            if(font->bits[ascii_code_pos] == 1)
-            {
-                memcpy(canvas->data + i, palette->rgb_bytes + palette_foreground_pos, 3);
-            }
-            else
-            {
-                memcpy(canvas->data + i, palette->rgb_bytes + palette_background_pos, 3);
-            }
-        }
-        i += (canvas->width - font->width) * 3;
-    }
-}
-
 void put_character_and_attribute_pair_on_screen(Screen *screen, uint16_t *x, uint16_t *y, uint8_t ascii_code, uint8_t attribute)
 {
     uint32_t data_position, new_length;
@@ -306,53 +264,6 @@ void truncate_screen_data(Screen *screen)
         break;
     }
     screen->data = realloc(screen->data, (size_t) screen->length);
-}
-
-Canvas* screen_to_canvas(Screen *screen)
-{
-    Canvas  *canvas = create_canvas(screen->columns * screen->font->width, screen->rows * screen->font->height);
-    uint8_t ascii_code, foreground, background;
-    switch(screen->type)
-    {
-        case CHARACTERS:
-        for(uint32_t y = 0, i = 0; y < screen->rows; y += 1)
-        {
-            for(uint32_t x = 0; x < screen->columns; x += 1, i += 1)
-            {
-                ascii_code = screen->data[i];
-                draw_glyph(canvas, ascii_code, 1, 0, x, y, screen->palette, screen->font);
-            }
-        }
-        break;
-        case CHARACTER_AND_ATTRIBUTE_PAIR:
-        for(uint32_t y = 0, i = 0; y < screen->rows; y += 1)
-        {
-            for(uint32_t x = 0; x < screen->columns; x += 1, i += 2)
-            {
-                ascii_code = screen->data[i];
-                foreground = screen->data[i + 1] & 0xf;
-                background = screen->data[i + 1] >> 4;
-                if(!screen->non_blink && background >= 8)
-                {
-                    background -= 8;
-                }
-                draw_glyph(canvas, ascii_code, foreground, background, x, y, screen->palette, screen->font);
-            }
-        }
-        break;
-        case RGB_DATA:
-        for(uint32_t y = 0, i = 0; y < screen->rows; y += 1)
-        {
-            for(uint32_t x = 0; x < screen->columns; x += 1, i += 7)
-            {
-                ascii_code = screen->data[i];
-                draw_rgb_glyph(canvas, ascii_code, screen->data + i + 1, screen->data + i + 4, x, y, screen->font);
-            }
-        }
-        break;
-    }
-    canvas->font_height = screen->font->height;
-    return canvas;
 }
 
 uint16_t get_actual_columns(Screen *screen)

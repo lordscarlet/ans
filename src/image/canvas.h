@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <SDL.h>
 
+#include "../file/formats/screen.h"
+
 typedef struct
 {
     uint32_t width;
@@ -33,5 +35,7 @@ void render_texture(SDL_Renderer *renderer, TextureCollection *textures, uint32_
 void free_textures(TextureCollection *textures);
 
 void debug_canvas(Canvas *canvas);
+
+Canvas* screen_to_canvas(Screen *screen);
 
 #endif /* end of include guard: CANVAS_H_FC7B83B1 */

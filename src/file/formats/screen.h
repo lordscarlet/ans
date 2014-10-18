@@ -6,7 +6,6 @@
 #include "palette.h"
 #include "font.h"
 #include "../sauce.h"
-#include "../../image/canvas.h"
 
 typedef enum {
     CHARACTERS,
@@ -47,8 +46,6 @@ void put_character_on_screen(Screen *screen, uint16_t *x, uint16_t *y, uint8_t a
 void clear_screen(Screen *screen);
 
 void truncate_screen_data(Screen *screen);
-
-Canvas* screen_to_canvas(Screen *screen);
 
 uint16_t get_actual_columns(Screen *screen);
 

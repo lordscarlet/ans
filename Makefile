@@ -34,7 +34,7 @@ palette.o: src/file/formats/palette.c src/file/formats/palette.h src/file/format
 font.o: src/file/formats/font.c src/file/file.h src/file/formats/screen.h src/file/formats/font.h src/file/formats/fonts/cp437_8x16.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
-screen.o: src/file/formats/screen.c src/file/formats/screen.h src/file/formats/palette.h src/file/formats/font.h src/file/sauce.h src/image/canvas.h
+screen.o: src/file/formats/screen.c src/file/formats/screen.h src/file/formats/palette.h src/file/formats/font.h src/file/sauce.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 window.o: src/ui/window.c src/ui/window.h src/image/canvas.h src/ui/event.h
@@ -61,7 +61,7 @@ tundra.o: src/file/formats/tundra.c src/file/file.h src/file/formats/screen.h sr
 xbin.o: src/file/formats/xbin.c src/file/file.h src/file/formats/screen.h src/file/formats/palette.h src/file/formats/font.h src/file/sauce.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
-canvas.o: src/image/canvas.c src/image/canvas.h
+canvas.o: src/image/canvas.c src/image/canvas.h src/file/formats/screen.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 event.o: src/ui/event.c src/image/canvas.h
