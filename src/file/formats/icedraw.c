@@ -56,7 +56,7 @@ TextArtFile* load_ice_draw_file(char const *filename)
     }
     truncate_screen_data(file->screen);
     fseek(file_ptr, (long) file->length - (ICE_DRAW_FONT_SIZE + ICE_DRAW_PALETTE_SIZE), SEEK_SET);
-    file->screen->font    = load_8x16x256_font(file_ptr);
+    file->screen->font    = create_and_load_8x16x256_font(file_ptr);
     file->screen->palette = load_palette(file_ptr);
     fclose(file_ptr);
     return file;

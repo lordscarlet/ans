@@ -36,10 +36,7 @@ Font* get_preset_font(FontType type)
     }
 }
 
-/*
-    TODO eliminate height and length arguments
-*/
-Font* load_font(uint8_t height, uint16_t length, FILE *file_ptr)
+Font* create_and_load_font(uint8_t height, uint16_t length, FILE *file_ptr)
 {
     Font *font   = malloc(sizeof(Font));
     font->type   = CUSTOM_FONT;
@@ -53,9 +50,9 @@ Font* load_font(uint8_t height, uint16_t length, FILE *file_ptr)
     return font;
 }
 
-Font* load_8x16x256_font(FILE *file_ptr)
+Font* create_and_load_8x16x256_font(FILE *file_ptr)
 {
-    return load_font(16, 256, file_ptr);
+    return create_and_load_font(16, 256, file_ptr);
 }
 
 void free_font(Font *font)

@@ -37,7 +37,7 @@ TextArtFile* load_artworx_file(char const *filename)
         }
     }
     generate_rgb_data(file->screen->palette);
-    file->screen->font    = load_8x16x256_font(file_ptr);
+    file->screen->font    = create_and_load_8x16x256_font(file_ptr);
     image_bytes_length    = file->length - (ARTWORX_VERSION_LENGTH + ARTWORX_PALETTE_LENGTH + ARTWORX_FONT_LENGTH);
     file->screen->columns = ARTWORX_DEFAULT_COLUMNS;
     file->screen->rows    = (uint16_t) (image_bytes_length / 2 / ARTWORX_DEFAULT_COLUMNS);

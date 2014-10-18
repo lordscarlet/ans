@@ -20,9 +20,9 @@ typedef struct {
 
 Font* get_preset_font(FontType type);
 
-Font* load_font(uint8_t height, uint16_t length, FILE *file_ptr);
+Font* create_and_load_font(uint8_t height, uint16_t length, FILE *file_ptr);
 
-Font* load_8x16x256_font(FILE *file_ptr);
+Font* create_and_load_8x16x256_font(FILE *file_ptr);
 
 void free_font(Font *font);
 

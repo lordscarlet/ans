@@ -99,11 +99,11 @@ TextArtFile* load_xbin_file(char const *filename)
     {
         if(flag_char_512)
         {
-            file->screen->font = load_font(font_height, 512, file_ptr);
+            file->screen->font = create_and_load_font(font_height, 512, file_ptr);
         }
         else
         {
-            file->screen->font = load_font(font_height, 256, file_ptr);
+            file->screen->font = create_and_load_font(font_height, 256, file_ptr);
         }
     }
     else
