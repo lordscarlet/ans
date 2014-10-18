@@ -69,6 +69,9 @@ void debug_screen(Screen *screen)
         printf("Screen type: ");
         switch(screen->type)
         {
+            case CHARACTERS:
+            printf("ASCII characters\n");
+            break;
             case CHARACTER_AND_ATTRIBUTE_PAIR:
             printf("Character and attribute byte-pair\n");
             break;
@@ -249,6 +252,38 @@ void put_rgb_data_on_screen(Screen *screen, uint16_t *x, uint16_t *y, uint8_t as
     }
 }
 
+void put_character_on_screen(Screen *screen, uint16_t *x, uint16_t *y, uint8_t ascii_code)
+{
+    uint32_t data_position, new_length;
+    void*    new_data;
+    if(screen->data == NULL)
+    {
+        screen->length = SCREEN_CHUNK_LENGTH * screen->columns;
+        screen->data   = calloc(screen->length, 1);
+    }
+    data_position = (*y * screen->columns + *x);
+    if(data_position >= screen->length)
+    {
+        new_length = (*y + SCREEN_CHUNK_LENGTH) * screen->columns;
+        new_data   = calloc(new_length, 1);
+        memcpy(new_data, screen->data, (size_t) screen->length);
+        free(screen->data);
+        screen->length = new_length;
+        screen->data   = new_data;
+    }
+    screen->data[data_position] = ascii_code;
+    *x += 1;
+    if(*x == screen->columns)
+    {
+        *x = 0;
+        *y += 1;
+    }
+    if(*y + 1 > screen->rows)
+    {
+        screen->rows = *y + 1;
+    }
+}
+
 void clear_screen(Screen *screen)
 {
     free(screen->data);
@@ -260,6 +295,9 @@ void truncate_screen_data(Screen *screen)
 {
     switch(screen->type)
     {
+        case CHARACTERS:
+        screen->length = screen->columns * screen->rows;
+        break;
         case CHARACTER_AND_ATTRIBUTE_PAIR:
         screen->length = screen->columns * screen->rows * 2;
         break;
@@ -272,17 +310,17 @@ void truncate_screen_data(Screen *screen)
 
 Canvas* screen_to_canvas(Screen *screen)
 {
-    Canvas *canvas = create_canvas(screen->columns * screen->font->width, screen->rows * screen->font->height);
+    Canvas  *canvas = create_canvas(screen->columns * screen->font->width, screen->rows * screen->font->height);
     uint8_t ascii_code, foreground, background;
     switch(screen->type)
     {
-        case RGB_DATA:
+        case CHARACTERS:
         for(uint32_t y = 0, i = 0; y < screen->rows; y += 1)
         {
-            for(uint32_t x = 0; x < screen->columns; x += 1, i += 7)
+            for(uint32_t x = 0; x < screen->columns; x += 1, i += 1)
             {
                 ascii_code = screen->data[i];
-                draw_rgb_glyph(canvas, ascii_code, screen->data + i + 1, screen->data + i + 4, x, y, screen->font);
+                draw_glyph(canvas, ascii_code, 1, 0, x, y, screen->palette, screen->font);
             }
         }
         break;
@@ -302,7 +340,99 @@ Canvas* screen_to_canvas(Screen *screen)
             }
         }
         break;
+        case RGB_DATA:
+        for(uint32_t y = 0, i = 0; y < screen->rows; y += 1)
+        {
+            for(uint32_t x = 0; x < screen->columns; x += 1, i += 7)
+            {
+                ascii_code = screen->data[i];
+                draw_rgb_glyph(canvas, ascii_code, screen->data + i + 1, screen->data + i + 4, x, y, screen->font);
+            }
+        }
+        break;
     }
     canvas->font_height = screen->font->height;
     return canvas;
+}
+
+uint16_t get_actual_columns(Screen *screen)
+{
+    uint16_t x     = 0;
+    uint16_t y     = 0;
+    uint16_t max_x = 0;
+    switch(screen->type)
+    {
+        case CHARACTERS:
+        for(uint32_t i = 0; y < screen->rows; y += 1)
+        {
+            for(x = 0; x < screen->columns; x += 1, i += 1)
+            {
+                if(screen->data[i] != 0 && x > max_x)
+                {
+                    max_x = x;
+                }
+            }
+        }
+        break;
+        case CHARACTER_AND_ATTRIBUTE_PAIR:
+        for(uint32_t i = 0; y < screen->rows; y += 1)
+        {
+            for(x = 0; x < screen->columns; x += 1, i += 2)
+            {
+                if(screen->data[i] != 0 && x > max_x)
+                {
+                    max_x = x;
+                }
+            }
+        }
+        break;
+        case RGB_DATA:
+        for(uint32_t i = 0; y < screen->rows; y += 1)
+        {
+            for(x = 0; x < screen->columns; x += 1, i += 7)
+            {
+                if(screen->data[i] != 0 && x > max_x)
+                {
+                    max_x = x;
+                }
+            }
+        }
+        break;
+    }
+    return max_x + 1;
+}
+
+void change_columns(Screen *screen, uint16_t new_columns)
+{
+    uint8_t *new_data;
+    switch(screen->type)
+    {
+        case CHARACTERS:
+        screen->length = new_columns * screen->rows;
+        new_data = calloc(screen->length, 1);
+        for(uint16_t y = 0; y < screen->rows; y += 1)
+        {
+            memcpy(new_data + new_columns * y, screen->data + screen->columns * y, screen->columns);
+        }
+        break;
+        case CHARACTER_AND_ATTRIBUTE_PAIR:
+        screen->length = new_columns * screen->rows * 2;
+        new_data = calloc(screen->length, 1);
+        for(uint16_t y = 0; y < screen->rows; y += 1)
+        {
+            memcpy(new_data + new_columns * y * 2, screen->data + screen->columns * y * 2, screen->columns * 2);
+        }
+        break;
+        case RGB_DATA:
+        screen->length = new_columns * screen->rows * 7;
+        new_data = calloc(screen->length, 1);
+        for(uint16_t y = 0; y < screen->rows; y += 1)
+        {
+            memcpy(new_data + new_columns * y * 7, screen->data + screen->columns * y * 7, screen->columns * 7);
+        }
+        break;
+    }
+    free(screen->data);
+    screen->columns = new_columns;
+    screen->data    = new_data;
 }

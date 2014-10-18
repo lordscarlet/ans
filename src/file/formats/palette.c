@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include "palette.h"
+#include "palettes/ascii_palette.h"
 #include "palettes/binary_palette.h"
 
 void generate_rgb_data(Palette *palette)
@@ -18,6 +19,10 @@ Palette* get_preset_palette(PaletteType type)
     palette->type    = type;
     switch(type)
     {
+        case ASCII_PALETTE:
+        palette->bytes = ascii_palette;
+        generate_rgb_data(palette);
+        return palette;
         case BINARY_PALETTE:
         palette->bytes = binary_palette;
         generate_rgb_data(palette);
@@ -72,6 +77,9 @@ void debug_palette(Palette *palette)
             }
         }
         printf("\n");
+        break;
+        case ASCII_PALETTE:
+        printf("Default ASCII palette\n");
         break;
         case BINARY_PALETTE:
         printf("Default binary-ordered palette\n");

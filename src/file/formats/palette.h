@@ -6,6 +6,7 @@
 
 typedef enum {
     CUSTOM_PALETTE,
+    ASCII_PALETTE,
     BINARY_PALETTE
 } PaletteType;
 

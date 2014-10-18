@@ -39,7 +39,6 @@ void debug_canvas(Canvas *canvas)
 {
     printf("Image width: %i\n",          canvas->width);
     printf("Image height: %i\n",         canvas->height);
-    printf("Image length (bytes): %i\n", canvas->length);
 }
 
 TextureCollection* create_textures(SDL_Renderer *renderer, Canvas *canvas)

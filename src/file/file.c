@@ -3,6 +3,7 @@
 #include "formats/screen.h"
 #include "../image/canvas.h"
 #include "formats/artworx.h"
+#include "formats/ascii.h"
 #include "formats/binary.h"
 #include "formats/icedraw.h"
 #include "formats/pcboard.h"
@@ -48,6 +49,10 @@ FileType extension_check(char const *filename)
     {
         return ANSI;
     }
+    if(strcasecmp(dot, "asc") == 0)
+    {
+        return ASCII;
+    }
     if(strcasecmp(dot, "ansiedit") == 0)
     {
         return ANSIEDIT;
@@ -56,9 +61,21 @@ FileType extension_check(char const *filename)
     {
         return BINARY;
     }
+    if(strcasecmp(dot, "diz") == 0)
+    {
+        return DIZ;
+    }
     if(strcasecmp(dot, "idf") == 0)
     {
         return ICE_DRAW;
+    }
+    if(strcasecmp(dot, "ion") == 0)
+    {
+        return DIZ;
+    }
+    if(strcasecmp(dot, "nfo") == 0)
+    {
+        return ASCII;
     }
     if(strcasecmp(dot, "pcb") == 0)
     {
@@ -67,6 +84,10 @@ FileType extension_check(char const *filename)
     if(strcasecmp(dot, "tnd") == 0)
     {
         return TUNDRA;
+    }
+    if(strcasecmp(dot, "txt") == 0)
+    {
+        return ASCII;
     }
     if(strcasecmp(dot, "xb") == 0)
     {
@@ -78,7 +99,8 @@ FileType extension_check(char const *filename)
 Canvas* read_file_and_generate_canvas(char const *filename)
 {
     TextArtFile *file = NULL;
-    Canvas *canvas = NULL;
+    Canvas *canvas    = NULL;
+    uint16_t actual_columns;
     switch(extension_check(filename))
     {
         case UNKNOWN:
@@ -91,8 +113,16 @@ Canvas* read_file_and_generate_canvas(char const *filename)
         break;
         case ANSIEDIT:
         break;
+        case ASCII:
+        file = load_ascii_file(filename);
+        break;
         case BINARY:
         file = load_binary_file(filename);
+        break;
+        case DIZ:
+        file = load_ascii_file(filename);
+        actual_columns = get_actual_columns(file->screen);
+        change_columns(file->screen, actual_columns);
         break;
         case ICE_DRAW:
         file = load_ice_draw_file(filename);

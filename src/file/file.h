@@ -6,7 +6,7 @@
 #include "../image/canvas.h"
 
 typedef enum {
-    UNKNOWN, ARTWORX, ANSI, ANSIEDIT, BINARY, ICE_DRAW, PC_BOARD, TUNDRA, XBIN
+    UNKNOWN, ARTWORX, ASCII, ANSI, ANSIEDIT, BINARY, DIZ, ICE_DRAW, PC_BOARD, TUNDRA, XBIN
 } FileType;
 
 typedef struct {
