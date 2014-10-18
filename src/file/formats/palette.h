@@ -24,4 +24,6 @@ Palette* load_palette(FILE *file_ptr);
 
 void free_palette(Palette *palette);
 
+void debug_palette(Palette *palette);
+
 #endif /* end of include guard: PALETTE_H_4C592A4D */

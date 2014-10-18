@@ -5,9 +5,11 @@
 
 #include "../sauce.h"
 #include "../../image/canvas.h"
+#include "palette.h"
 
 typedef struct
 {
+    Palette  *palette;
     uint16_t columns;
     uint16_t rows;
     uint8_t *image_bytes;

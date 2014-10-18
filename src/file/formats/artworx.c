@@ -60,15 +60,7 @@ void free_artworx_file(ArtworxFile *file)
 void debug_artworx_file(ArtworxFile *file)
 {
     printf("Artworx rows: %i\n", file->rows);
-    printf("Artworx palette: ");
-    for(size_t i = 0; i < 48; i += 3) {
-        printf("(%d, %d, %d)", file->palette->bytes[i], file->palette->bytes[i + 1], file->palette->bytes[i + 2]);
-        if(i < 45)
-        {
-            printf(", ");
-        }
-    }
-    printf("\n");
+    debug_palette(file->palette);
     printf("Artworx actual file size (excluding Sauce record and comments, in bytes): %d\n", file->actual_file_size);
     if(file->sauce != NULL)
     {

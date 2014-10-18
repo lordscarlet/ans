@@ -13,6 +13,7 @@ uint16_t BINARY_DEFAULT_COLUMNS = 160;
 BinaryFile* load_binary(char const *filename)
 {
     BinaryFile *file = malloc(sizeof(BinaryFile));
+    file->palette    = get_preset_palette(BINARY_PALETTE);
     FILE *file_ptr = fopen(filename, "r");
     file->sauce = get_sauce(file_ptr);
     file->actual_file_size = get_actual_file_size(file_ptr, file->sauce);
@@ -32,6 +33,7 @@ void free_binary_file(BinaryFile *file)
             free(file->sauce);
         }
         free(file->image_bytes);
+        free_palette(file->palette);
         free(file);
     }
 }
@@ -39,6 +41,7 @@ void free_binary_file(BinaryFile *file)
 void debug_binary_file(BinaryFile *file)
 {
     printf("Binary rows: %i\n", file->rows);
+    debug_palette(file->palette);
     printf("Binary actual file size (excluding Sauce record and comments, in bytes): %d\n", file->actual_file_size);
     if(file->sauce != NULL)
     {
@@ -48,7 +51,6 @@ void debug_binary_file(BinaryFile *file)
 
 Canvas* binary_file_to_canvas(BinaryFile *file)
 {
-    Palette *palette = get_preset_palette(BINARY_PALETTE);
     Font       *font = get_preset_font(IBM_VGA_8x16);
     Canvas   *canvas = create_canvas(BINARY_DEFAULT_COLUMNS * font->width, file->rows * font->height);
     uint8_t ascii_code, foreground, background;
@@ -72,11 +74,10 @@ Canvas* binary_file_to_canvas(BinaryFile *file)
             {
                 background -= 8;
             }
-            draw_glyph(canvas, ascii_code, foreground, background, x, y, palette, font);
+            draw_glyph(canvas, ascii_code, foreground, background, x, y, file->palette, font);
         }
     }
     canvas->font_height = 16;
-    free_palette(palette);
     free_font(font);
     return canvas;
 }

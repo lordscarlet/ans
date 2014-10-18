@@ -57,6 +57,7 @@ void realloc_pc_board_image_bytes_if_necessary(PCBoardFile *file, uint32_t *limi
 PCBoardFile* load_pcboard(char const *filename)
 {
     PCBoardFile *file = malloc(sizeof(PCBoardFile));
+    file->palette = get_preset_palette(BINARY_PALETTE);
     FILE     *file_ptr = fopen(filename, "r");
     uint8_t  *ascii_code, foreground = 7, background = 0, x = 0, y = 0;
     uint32_t image_bytes_limit;
@@ -158,6 +159,7 @@ void free_pcboard_file(PCBoardFile *file)
             free(file->sauce);
         }
         free(file->image_bytes);
+        free_palette(file->palette);
         free(file);
     }
 }
@@ -166,6 +168,7 @@ void debug_pcboard_file(PCBoardFile *file)
 {
     printf("PCBoard columns: %i\n", file->columns);
     printf("PCBoard rows: %i\n", file->rows);
+    debug_palette(file->palette);
     printf("PCBoard actual file size (excluding Sauce record and comments, in bytes): %d\n", file->actual_file_size);
     if(file->sauce != NULL)
     {
@@ -175,7 +178,6 @@ void debug_pcboard_file(PCBoardFile *file)
 
 Canvas* pcboard_file_to_canvas(PCBoardFile *file)
 {
-    Palette *palette = get_preset_palette(BINARY_PALETTE);
     Font       *font = get_preset_font(IBM_VGA_8x16);
     Canvas   *canvas = create_canvas(file->columns * font->width, file->rows * font->height);
     uint8_t ascii_code, foreground, background;
@@ -186,11 +188,10 @@ Canvas* pcboard_file_to_canvas(PCBoardFile *file)
             ascii_code = file->image_bytes[i];
             foreground = file->image_bytes[i + 1] & 0xf;
             background = file->image_bytes[i + 1] >> 4;
-            draw_glyph(canvas, ascii_code, foreground, background, x, y, palette, font);
+            draw_glyph(canvas, ascii_code, foreground, background, x, y, file->palette, font);
         }
     }
     canvas->font_height = font->height;
-    free_palette(palette);
     free_font(font);
     return canvas;
 }

@@ -158,24 +158,7 @@ void debug_xbin_file(XBinFile *file)
     {
         printf("No\n");
     }
-    printf("XBin palette: ");
-    if(file->palette->type == CUSTOM_PALETTE)
-    {
-        printf("Included in file\n");
-        printf("XBin palette values: ");
-        for(size_t i = 0; i < 48; i += 3) {
-            printf("(%d, %d, %d)", file->palette->bytes[i], file->palette->bytes[i + 1], file->palette->bytes[i + 2]);
-            if(i < 45)
-            {
-                printf(", ");
-            }
-        }
-        printf("\n");
-    }
-    else
-    {
-        printf("None included\n");
-    }
+    debug_palette(file->palette);
     printf("XBin font: ");
     if(file->font->type == CUSTOM_FONT)
     {

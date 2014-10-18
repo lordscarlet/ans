@@ -55,3 +55,26 @@ void free_palette(Palette *palette)
         free(palette);
     }
 }
+
+void debug_palette(Palette *palette)
+{
+    printf("Palette: ");
+    switch(palette->type)
+    {
+        case CUSTOM_PALETTE:
+        printf("Included in file\n");
+        printf("Palette values: ");
+        for(size_t i = 0; i < 48; i += 3) {
+            printf("(%d, %d, %d)", palette->bytes[i], palette->bytes[i + 1], palette->bytes[i + 2]);
+            if(i < 45)
+            {
+                printf(", ");
+            }
+        }
+        printf("\n");
+        break;
+        case BINARY_PALETTE:
+        printf("Default binary-ordered palette\n");
+        break;
+    }
+}
