@@ -81,4 +81,5 @@ void debug_font(Font *font)
     }
     printf("Font width: %d\n", font->width);
     printf("Font height: %d\n", font->height);
+    printf("Font glyphs (amount): %d\n", font->length);
 }

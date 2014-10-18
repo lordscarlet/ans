@@ -64,10 +64,11 @@ void decompress(uint8_t *image_bytes, uint32_t image_bytes_length, FILE *file_pt
 XBinFile* load_xbin(char const *filename)
 {
     char id[5];
-    uint8_t eof, flags;
-    bool flag_palette, flag_font, flag_compress;
+    uint8_t eof, font_height, flags;
+    bool flag_palette, flag_font, flag_compress, flag_char_512;
     FILE *file_ptr = fopen(filename, "r");
     XBinFile *file = malloc(sizeof(XBinFile));
+    uint32_t image_bytes_length;
     file->sauce = get_sauce(file_ptr);
     file->actual_file_size = get_actual_file_size(file_ptr, file->sauce);
     fread(id,                 1, 4, file_ptr);
@@ -75,13 +76,13 @@ XBinFile* load_xbin(char const *filename)
     fread(&eof,               1, 1, file_ptr);
     fread(&file->columns,     2, 1, file_ptr);
     fread(&file->rows,        2, 1, file_ptr);
-    fread(&file->font_height, 1, 1, file_ptr);
+    fread(&font_height,       1, 1, file_ptr);
     fread(&flags,             1, 1, file_ptr);
     flag_palette         = (flags & FLAG_PALETTE)   == FLAG_PALETTE;
     flag_font            = (flags & FLAG_FONT)      == FLAG_FONT;
     flag_compress        = (flags & FLAG_COMPRESS)  == FLAG_COMPRESS;
     file->flag_non_blink = (flags & FLAG_NON_BLINK) == FLAG_NON_BLINK;
-    file->flag_char_512  = (flags & FLAG_CHAR_512)  == FLAG_CHAR_512;
+    flag_char_512        = (flags & FLAG_CHAR_512)  == FLAG_CHAR_512;
     if(flag_palette)
     {
         file->palette = load_palette(file_ptr);
@@ -92,13 +93,13 @@ XBinFile* load_xbin(char const *filename)
     }
     if(flag_font)
     {
-        if(file->flag_char_512)
+        if(flag_char_512)
         {
-            file->font = load_font(file->font_height, 512, file_ptr);
+            file->font = load_font(font_height, 512, file_ptr);
         }
         else
         {
-            file->font = load_font(file->font_height, 256, file_ptr);
+            file->font = load_font(font_height, 256, file_ptr);
         }
     }
     else
@@ -107,20 +108,19 @@ XBinFile* load_xbin(char const *filename)
     }
     if(file->columns > 0 && file->rows > 0)
     {
-        file->image_bytes_length = file->columns * file->rows * 2;
-        file->image_bytes = malloc(file->image_bytes_length);
+        image_bytes_length = file->columns * file->rows * 2;
+        file->image_bytes = malloc(image_bytes_length);
         if(!flag_compress)
         {
-            fread(file->image_bytes, 1, file->image_bytes_length, file_ptr);
+            fread(file->image_bytes, 1, image_bytes_length, file_ptr);
         }
         else
         {
-            decompress(file->image_bytes, file->image_bytes_length, file_ptr);
+            decompress(file->image_bytes, image_bytes_length, file_ptr);
         }
     }
     else
     {
-        file->image_bytes_length = 0;
         file->image_bytes = NULL;
     }
     fclose(file_ptr);
@@ -149,21 +149,8 @@ void debug_xbin_file(XBinFile *file)
 {
     printf("XBin columns: %i\n",             file->columns);
     printf("XBin rows: %i\n",                file->rows);
-    printf("XBin 512 Characters: ");
-    if(file->flag_char_512)
-    {
-        printf("Yes\n");
-    }
-    else
-    {
-        printf("No\n");
-    }
     debug_palette(file->palette);
     debug_font(file->font);
-    if(file->image_bytes != NULL)
-    {
-        printf("XBin image length (bytes): %d\n", file->image_bytes_length);
-    }
     printf("XBin actual file size (excluding Sauce record and comments, in bytes): %d\n", file->actual_file_size);
     if(file->sauce != NULL)
     {

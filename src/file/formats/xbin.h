@@ -13,13 +13,10 @@ typedef struct
 {
     uint16_t columns;
     uint16_t rows;
-    uint8_t  font_height;
-    bool     flag_char_512;
     bool     flag_non_blink;
     Palette  *palette;
     Font     *font;
     uint8_t  *image_bytes;
-    uint32_t image_bytes_length;
     uint32_t actual_file_size;
     Sauce    *sauce;
 } XBinFile;
