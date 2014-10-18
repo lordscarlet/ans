@@ -93,6 +93,7 @@ void free_ice_draw_file(IceDrawFile *file)
 void debug_ice_draw_file(IceDrawFile *file)
 {
     debug_palette(file->palette);
+    debug_font(file->font);
     printf("Ice Draw actual file size (excluding Sauce record and comments, in bytes): %d\n", file->actual_file_size);
     if(file->sauce != NULL)
     {

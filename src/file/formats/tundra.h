@@ -5,9 +5,11 @@
 
 #include "../sauce.h"
 #include "../../image/canvas.h"
+#include "font.h"
 
 typedef struct
 {
+    Font     *font;
     uint16_t columns;
     uint16_t rows;
     uint8_t *image_bytes;

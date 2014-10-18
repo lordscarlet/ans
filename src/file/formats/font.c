@@ -16,7 +16,6 @@ void generate_bits(Font *font)
     }
 }
 
-
 Font* get_preset_font(FontType type)
 {
     Font *font = malloc(sizeof(Font));
@@ -28,6 +27,7 @@ Font* get_preset_font(FontType type)
         font->height = ibm_vga_8x16_height;
         font->length = ibm_vga_8x16_length;
         font->bytes  = ibm_vga_8x16;
+        font->name   = ibm_vga_8x16_name;
         generate_bits(font);
         return font;
         default:
@@ -44,6 +44,7 @@ Font* load_font(uint8_t height, uint16_t length, FILE *file_ptr)
     font->height = height;
     font->length = length;
     font->bytes  = malloc(font->height * font->length);
+    font->name   = NULL;
     fread(font->bytes, 1, font->height * font->length, file_ptr);
     generate_bits(font);
     return font;
@@ -65,4 +66,19 @@ void free_font(Font *font)
         free(font->bits);
         free(font);
     }
+}
+
+void debug_font(Font *font)
+{
+    printf("Font: ");
+    if(font->type == CUSTOM_FONT)
+    {
+        printf("Included in file\n");
+    }
+    else
+    {
+        printf("%s\n", font->name);
+    }
+    printf("Font width: %d\n", font->width);
+    printf("Font height: %d\n", font->height);
 }

@@ -352,5 +352,7 @@ uint8_t ibm_vga_8x16_height = 16;
 
 uint16_t ibm_vga_8x16_length = 256;
 
+char *ibm_vga_8x16_name = "IBM / Microsoft DOS Code Page 437";
+
 #endif /* end of include guard: IBM_VGA_8X16_H_ACF46D78 */
 

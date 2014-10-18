@@ -58,6 +58,7 @@ PCBoardFile* load_pcboard(char const *filename)
 {
     PCBoardFile *file = malloc(sizeof(PCBoardFile));
     file->palette = get_preset_palette(BINARY_PALETTE);
+    file->font = get_preset_font(IBM_VGA_8x16);
     FILE     *file_ptr = fopen(filename, "r");
     uint8_t  *ascii_code, foreground = 7, background = 0, x = 0, y = 0;
     uint32_t image_bytes_limit;
@@ -159,6 +160,7 @@ void free_pcboard_file(PCBoardFile *file)
             free(file->sauce);
         }
         free(file->image_bytes);
+        free_font(file->font);
         free_palette(file->palette);
         free(file);
     }
@@ -169,6 +171,7 @@ void debug_pcboard_file(PCBoardFile *file)
     printf("PCBoard columns: %i\n", file->columns);
     printf("PCBoard rows: %i\n", file->rows);
     debug_palette(file->palette);
+    debug_font(file->font);
     printf("PCBoard actual file size (excluding Sauce record and comments, in bytes): %d\n", file->actual_file_size);
     if(file->sauce != NULL)
     {
@@ -178,8 +181,7 @@ void debug_pcboard_file(PCBoardFile *file)
 
 Canvas* pcboard_file_to_canvas(PCBoardFile *file)
 {
-    Font       *font = get_preset_font(IBM_VGA_8x16);
-    Canvas   *canvas = create_canvas(file->columns * font->width, file->rows * font->height);
+    Canvas *canvas = create_canvas(file->columns * file->font->width, file->rows * file->font->height);
     uint8_t ascii_code, foreground, background;
     for(uint32_t y = 0, i = 0; y < file->rows; y += 1)
     {
@@ -188,11 +190,10 @@ Canvas* pcboard_file_to_canvas(PCBoardFile *file)
             ascii_code = file->image_bytes[i];
             foreground = file->image_bytes[i + 1] & 0xf;
             background = file->image_bytes[i + 1] >> 4;
-            draw_glyph(canvas, ascii_code, foreground, background, x, y, file->palette, font);
+            draw_glyph(canvas, ascii_code, foreground, background, x, y, file->palette, file->font);
         }
     }
-    canvas->font_height = font->height;
-    free_font(font);
+    canvas->font_height = file->font->height;
     return canvas;
 }
 

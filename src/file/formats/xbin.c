@@ -159,16 +159,7 @@ void debug_xbin_file(XBinFile *file)
         printf("No\n");
     }
     debug_palette(file->palette);
-    printf("XBin font: ");
-    if(file->font->type == CUSTOM_FONT)
-    {
-        printf("Included in file\n");
-        printf("XBin font height: %i\n", file->font_height);
-    }
-    else
-    {
-        printf("None included\n");
-    }
+    debug_font(file->font);
     if(file->image_bytes != NULL)
     {
         printf("XBin image length (bytes): %d\n", file->image_bytes_length);

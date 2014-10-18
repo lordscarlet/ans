@@ -35,6 +35,7 @@ void realloc_tundra_image_bytes_if_necessary(TundraFile *file, uint32_t *limit, 
 TundraFile* load_tundra(char const *filename)
 {
     TundraFile *file = malloc(sizeof(TundraFile));
+    file->font = get_preset_font(IBM_VGA_8x16);
     FILE       *file_ptr = fopen(filename, "r");
     uint8_t    magic_number[9], ascii_code;
     uint8_t    *foreground = calloc(3, 1);
@@ -114,6 +115,7 @@ void free_tundra_file(TundraFile *file)
             free(file->sauce);
         }
         free(file->image_bytes);
+        free_font(file->font);
         free(file);
     }
 }
@@ -122,6 +124,7 @@ void debug_tundra_file(TundraFile *file)
 {
     printf("Tundra columns: %i\n", file->columns);
     printf("Tundra rows: %i\n", file->rows);
+    debug_font(file->font);
     printf("Tundra actual file size (excluding Sauce record and comments, in bytes): %d\n", file->actual_file_size);
     if(file->sauce != NULL)
     {
@@ -131,19 +134,17 @@ void debug_tundra_file(TundraFile *file)
 
 Canvas* tundra_file_to_canvas(TundraFile *file)
 {
-    Font    *font = get_preset_font(IBM_VGA_8x16);
-    Canvas  *canvas = create_canvas(file->columns * font->width, file->rows * font->height);
+    Canvas *canvas = create_canvas(file->columns * file->font->width, file->rows * file->font->height);
     uint8_t ascii_code;
     for(uint32_t y = 0, i = 0; y < file->rows; y += 1)
     {
         for(uint32_t x = 0; x < file->columns; x += 1, i += 7)
         {
             ascii_code = file->image_bytes[i];
-            draw_rgb_glyph(canvas, ascii_code, file->image_bytes + i + 1, file->image_bytes + i + 4, x, y, font);
+            draw_rgb_glyph(canvas, ascii_code, file->image_bytes + i + 1, file->image_bytes + i + 4, x, y, file->font);
         }
     }
-    canvas->font_height = font->height;
-    free_font(font);
+    canvas->font_height = file->font->height;
     return canvas;
 }
 
