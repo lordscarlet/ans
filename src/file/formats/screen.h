@@ -31,6 +31,8 @@ Screen* create_screen_with_palette_and_font(ScreenType screen_type, PaletteType 
 
 void load_screen(Screen *screen, FILE *file_ptr);
 
+void copy_screen_from_bytes(Screen *screen, uint8_t *bytes);
+
 void use_sauce_ansiflags(Screen *screen, Sauce *sauce);
 
 void debug_screen(Screen *screen);

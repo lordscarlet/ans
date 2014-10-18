@@ -16,7 +16,7 @@ enum Flags
     FLAG_CHAR_512  = 16
 };
 
-void decompress(uint8_t *image_bytes, uint32_t image_bytes_length, FILE *file_ptr)
+void decompress_xbin(uint8_t *image_bytes, uint32_t image_bytes_length, FILE *file_ptr)
 {
     uint8_t p, count, repeat_char, repeat_attr;
     for(uint32_t i = 0; i < image_bytes_length;)
@@ -120,7 +120,7 @@ TextArtFile* load_xbin_file(char const *filename)
         {
             image_bytes_length = file->screen->columns * file->screen->rows * 2;
             file->screen->data = malloc(image_bytes_length);
-            decompress(file->screen->data, image_bytes_length, file_ptr);
+            decompress_xbin(file->screen->data, image_bytes_length, file_ptr);
         }
     }
     else

@@ -52,6 +52,20 @@ void load_screen(Screen *screen, FILE *file_ptr)
     }
 }
 
+void copy_screen_from_bytes(Screen *screen, uint8_t *bytes)
+{
+    switch(screen->type)
+    {
+        case CHARACTER_AND_ATTRIBUTE_PAIR:
+        screen->length   = screen->columns * screen->rows * 2;
+        screen->data     = malloc(screen->length);
+        memcpy(screen->data, bytes, screen->length);
+        break;
+        default:
+        break;
+    }
+}
+
 void use_sauce_ansiflags(Screen *screen, Sauce *sauce)
 {
     if(sauce != NULL)
