@@ -4,7 +4,7 @@
 #include "binary.h"
 #include "../sauce.h"
 #include "../../image/canvas.h"
-#include "../../image/renderer.h"
+#include "screen.h"
 #include "palette.h"
 #include "font.h"
 
@@ -12,16 +12,18 @@ uint16_t BINARY_DEFAULT_COLUMNS = 160;
 
 BinaryFile* load_binary(char const *filename)
 {
-    BinaryFile *file = malloc(sizeof(BinaryFile));
-    file->palette    = get_preset_palette(BINARY_PALETTE);
-    file->font       = get_preset_font(CP437_8x16);
-    FILE *file_ptr = fopen(filename, "r");
-    file->sauce = get_sauce(file_ptr);
+    BinaryFile *file;
+    FILE       *file_ptr;
+    file                   = malloc(sizeof(BinaryFile));
+    file->screen           = create_screen_with_palette_and_font(CHARACTER_AND_ATTRIBUTE_PAIR, BINARY_PALETTE, CP437_8x16);
+    file_ptr               = fopen(filename, "r");
+    file->sauce            = get_sauce(file_ptr);
     file->actual_file_size = get_actual_file_size(file_ptr, file->sauce);
-    file->rows = file->actual_file_size / 2 / BINARY_DEFAULT_COLUMNS;
-    file->image_bytes = malloc(file->actual_file_size);
-    fread(file->image_bytes, 1, file->actual_file_size, file_ptr);
+    file->screen->columns  = BINARY_DEFAULT_COLUMNS;
+    file->screen->rows     = file->actual_file_size / 2 / BINARY_DEFAULT_COLUMNS;
+    load_screen(file->screen, file_ptr);
     fclose(file_ptr);
+    use_sauce_ansiflags(file->screen, file->sauce);
     return file;
 }
 
@@ -29,22 +31,18 @@ void free_binary_file(BinaryFile *file)
 {
     if(file != NULL)
     {
+        free_screen(file->screen);
         if(file->sauce != NULL)
         {
             free(file->sauce);
         }
-        free(file->image_bytes);
-        free_font(file->font);
-        free_palette(file->palette);
         free(file);
     }
 }
 
 void debug_binary_file(BinaryFile *file)
 {
-    printf("Binary rows: %i\n", file->rows);
-    debug_palette(file->palette);
-    debug_font(file->font);
+    debug_screen(file->screen);
     printf("Binary actual file size (excluding Sauce record and comments, in bytes): %d\n", file->actual_file_size);
     if(file->sauce != NULL)
     {
@@ -52,42 +50,11 @@ void debug_binary_file(BinaryFile *file)
     }
 }
 
-Canvas* binary_file_to_canvas(BinaryFile *file)
-{
-    Canvas *canvas = create_canvas(BINARY_DEFAULT_COLUMNS * file->font->width, file->rows * file->font->height);
-    uint8_t ascii_code, foreground, background;
-    bool non_blink;
-    if(file->sauce != NULL)
-    {
-        non_blink = file->sauce->non_blink;
-    }
-    else
-    {
-        non_blink = false;
-    }
-    for(uint32_t y = 0, i = 0; y < file->rows; y += 1)
-    {
-        for(uint32_t x = 0; x < BINARY_DEFAULT_COLUMNS; x += 1, i += 2)
-        {
-            ascii_code = file->image_bytes[i];
-            foreground = file->image_bytes[i + 1] & 0xf;
-            background = file->image_bytes[i + 1] >> 4;
-            if(!non_blink && background >= 8)
-            {
-                background -= 8;
-            }
-            draw_glyph(canvas, ascii_code, foreground, background, x, y, file->palette, file->font);
-        }
-    }
-    canvas->font_height = 16;
-    return canvas;
-}
-
 Canvas* load_binary_file_and_generate_canvas(char const *filename)
 {
     BinaryFile* file = load_binary(filename);
     debug_binary_file(file);
-    Canvas *canvas = binary_file_to_canvas(file);
+    Canvas *canvas = screen_to_canvas(file->screen);
     free_binary_file(file);
     return canvas;
 }

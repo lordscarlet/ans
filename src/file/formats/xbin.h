@@ -4,19 +4,13 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "../../image/canvas.h"
+#include "screen.h"
 #include "../sauce.h"
-#include "palette.h"
-#include "font.h"
+#include "../../image/canvas.h"
 
 typedef struct
 {
-    uint16_t columns;
-    uint16_t rows;
-    bool     flag_non_blink;
-    Palette  *palette;
-    Font     *font;
-    uint8_t  *image_bytes;
+    Screen   *screen;
     uint32_t actual_file_size;
     Sauce    *sauce;
 } XBinFile;

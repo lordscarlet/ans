@@ -5,16 +5,12 @@
 
 #include "../sauce.h"
 #include "../../image/canvas.h"
-#include "palette.h"
-#include "font.h"
+#include "screen.h"
 
 typedef struct
 {
-    uint16_t rows;
-    Palette  *palette;
-    Font     *font;
+    Screen   *screen;
     uint32_t actual_file_size;
-    uint8_t  *image_bytes;
     Sauce    *sauce;
 } IceDrawFile;
 

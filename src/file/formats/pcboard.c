@@ -4,14 +4,14 @@
 #include "pcboard.h"
 #include "../sauce.h"
 #include "../../image/canvas.h"
-#include "../../image/renderer.h"
+#include "screen.h"
 #include "palette.h"
 #include "font.h"
 
-char     *PC_BOARD_ATTRIBUTE         = "X";
-char     *PC_BOARD_CLS               = "CLS";
-char     *PC_BOARD_POS               = "POS:";
-uint32_t PCBOARD_IMAGE_CHUNK_LENGTH  = 10000;
+char     *PC_BOARD_ATTRIBUTE      = "X";
+char     *PC_BOARD_CLS            = "CLS";
+char     *PC_BOARD_POS            = "POS:";
+uint16_t PC_BOARD_DEFAULT_COLUMNS = 80;
 
 bool look_ahead(uint8_t *data, uint32_t pos, uint32_t data_length, char *string)
 {
@@ -39,42 +39,29 @@ uint8_t get_color(uint8_t code)
     return (code - 48) & 0xf;
 }
 
-void realloc_pc_board_image_bytes_if_necessary(PCBoardFile *file, uint32_t *limit, uint32_t pos)
-{
-    void* alloc;
-    uint32_t new_limit;
-    if(pos >= *limit)
-    {
-        new_limit = *limit + PCBOARD_IMAGE_CHUNK_LENGTH * file->columns * 2;
-        alloc = calloc(new_limit, 1);
-        memcpy(alloc, file->image_bytes, *limit);
-        free(file->image_bytes);
-        file->image_bytes = alloc;
-        *limit = new_limit;
-    }
-}
-
 PCBoardFile* load_pcboard(char const *filename)
 {
-    PCBoardFile *file = malloc(sizeof(PCBoardFile));
-    file->palette = get_preset_palette(BINARY_PALETTE);
-    file->font = get_preset_font(CP437_8x16);
-    FILE     *file_ptr = fopen(filename, "r");
-    uint8_t  *ascii_code, foreground = 7, background = 0, x = 0, y = 0;
-    uint32_t image_bytes_limit;
-    file->sauce = get_sauce(file_ptr);
+    PCBoardFile *file;
+    FILE        *file_ptr;
+    uint8_t     ascii_code;
+    uint8_t     foreground = 7;
+    uint8_t     background = 0;
+    uint16_t    x = 0;
+    uint16_t    y = 0;
+    uint8_t     *data;
+    file                   = malloc(sizeof(PCBoardFile));
+    file->screen           = create_screen_with_palette_and_font(CHARACTER_AND_ATTRIBUTE_PAIR, BINARY_PALETTE, CP437_8x16);
+    file_ptr               = fopen(filename, "r");
+    file->sauce            = get_sauce(file_ptr);
     file->actual_file_size = get_actual_file_size(file_ptr, file->sauce);
-    uint8_t  data[file->actual_file_size];
-    file->columns = t_info_1(file->sauce, 80);
-    image_bytes_limit = PCBOARD_IMAGE_CHUNK_LENGTH * file->columns * 2;
-    file->rows = 0;
-    file->image_bytes = calloc(image_bytes_limit, 1);
+    data = malloc(file->actual_file_size);
     fread(data, 1, file->actual_file_size, file_ptr);
     fclose(file_ptr);
-    for(uint32_t i = 0, image_bytes_location; i < file->actual_file_size; i += 1)
+    file->screen->columns = t_info_1(file->sauce, PC_BOARD_DEFAULT_COLUMNS);
+    for(uint32_t i = 0; i < file->actual_file_size; i += 1)
     {
-        ascii_code = data + i;
-        switch(*ascii_code)
+        ascii_code = data[i];
+        switch(ascii_code)
         {
             case '\t':
             x += 9;
@@ -120,7 +107,7 @@ PCBoardFile* load_pcboard(char const *filename)
             {
                 x = 0;
                 y = 0;
-                file->rows = 0;
+                clear_screen(file->screen);
                 i += 4;
             }
             else
@@ -130,24 +117,21 @@ PCBoardFile* load_pcboard(char const *filename)
             break;
             default:
 LITERAL:
-            if(x == file->columns)
-            {
-                x = 0;
-                y += 1;
-            }
-            image_bytes_location = (y * file->columns + x) * 2;
-            realloc_pc_board_image_bytes_if_necessary(file, &image_bytes_limit, image_bytes_location);
-            file->image_bytes[image_bytes_location + 0] = *ascii_code;
-            file->image_bytes[image_bytes_location + 1] = (background << 4) + foreground;
-            x += 1;
-            if(y + 1 > file->rows)
-            {
-                file->rows = y + 1;
-            }
+            put_character_and_attribute_pair_on_screen(file->screen, &x, &y, ascii_code, (background << 4) + foreground);
+            // image_bytes_location = (y * file->columns + x) * 2;
+            // realloc_pc_board_image_bytes_if_necessary(file, &image_bytes_limit, image_bytes_location);
+            // file->image_bytes[image_bytes_location + 0] = *ascii_code;
+            // file->image_bytes[image_bytes_location + 1] = (background << 4) + foreground;
+            // x += 1;
+            // if(y + 1 > file->rows)
+            // {
+            //     file->rows = y + 1;
+            // }
             break;
         }
     }
-    file->image_bytes = realloc(file->image_bytes, file->columns * file->rows * 2);
+    free(data);
+    truncate_screen_data(file->screen);
     return file;
 }
 
@@ -155,23 +139,18 @@ void free_pcboard_file(PCBoardFile *file)
 {
     if(file != NULL)
     {
+        free_screen(file->screen);
         if(file->sauce != NULL)
         {
             free(file->sauce);
         }
-        free(file->image_bytes);
-        free_font(file->font);
-        free_palette(file->palette);
         free(file);
     }
 }
 
 void debug_pcboard_file(PCBoardFile *file)
 {
-    printf("PCBoard columns: %i\n", file->columns);
-    printf("PCBoard rows: %i\n", file->rows);
-    debug_palette(file->palette);
-    debug_font(file->font);
+    debug_screen(file->screen);
     printf("PCBoard actual file size (excluding Sauce record and comments, in bytes): %d\n", file->actual_file_size);
     if(file->sauce != NULL)
     {
@@ -179,29 +158,11 @@ void debug_pcboard_file(PCBoardFile *file)
     }
 }
 
-Canvas* pcboard_file_to_canvas(PCBoardFile *file)
-{
-    Canvas *canvas = create_canvas(file->columns * file->font->width, file->rows * file->font->height);
-    uint8_t ascii_code, foreground, background;
-    for(uint32_t y = 0, i = 0; y < file->rows; y += 1)
-    {
-        for(uint32_t x = 0; x < file->columns; x += 1, i += 2)
-        {
-            ascii_code = file->image_bytes[i];
-            foreground = file->image_bytes[i + 1] & 0xf;
-            background = file->image_bytes[i + 1] >> 4;
-            draw_glyph(canvas, ascii_code, foreground, background, x, y, file->palette, file->font);
-        }
-    }
-    canvas->font_height = file->font->height;
-    return canvas;
-}
-
 Canvas* load_pcboard_file_and_generate_canvas(char const *filename)
 {
     PCBoardFile* file = load_pcboard(filename);
     debug_pcboard_file(file);
-    Canvas *canvas = pcboard_file_to_canvas(file);
+    Canvas *canvas = screen_to_canvas(file->screen);
     free_pcboard_file(file);
     return canvas;
 }

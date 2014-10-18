@@ -5,16 +5,13 @@
 
 #include "../sauce.h"
 #include "../../image/canvas.h"
-#include "font.h"
+#include "screen.h"
 
 typedef struct
 {
-    Font     *font;
-    uint16_t columns;
-    uint16_t rows;
-    uint8_t *image_bytes;
+    Screen   *screen;
     uint32_t actual_file_size;
-    Sauce *sauce;
+    Sauce    *sauce;
 } TundraFile;
 
 Canvas* load_tundra_file_and_generate_canvas(char const *filename);

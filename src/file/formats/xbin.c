@@ -4,7 +4,7 @@
 #include "xbin.h"
 #include "../sauce.h"
 #include "../../image/canvas.h"
-#include "../../image/renderer.h"
+#include "screen.h"
 #include "palette.h"
 #include "font.h"
 
@@ -66,62 +66,67 @@ XBinFile* load_xbin(char const *filename)
     char id[5];
     uint8_t eof, font_height, flags;
     bool flag_palette, flag_font, flag_compress, flag_char_512;
-    FILE *file_ptr = fopen(filename, "r");
-    XBinFile *file = malloc(sizeof(XBinFile));
+    FILE *file_ptr;
+    XBinFile *file;
     uint32_t image_bytes_length;
+    file_ptr = fopen(filename, "r");
+    file = malloc(sizeof(XBinFile));
+    file->screen = create_screen(CHARACTER_AND_ATTRIBUTE_PAIR);
     file->sauce = get_sauce(file_ptr);
     file->actual_file_size = get_actual_file_size(file_ptr, file->sauce);
-    fread(id,                 1, 4, file_ptr);
     id[4] = 0;
-    fread(&eof,               1, 1, file_ptr);
-    fread(&file->columns,     2, 1, file_ptr);
-    fread(&file->rows,        2, 1, file_ptr);
-    fread(&font_height,       1, 1, file_ptr);
-    fread(&flags,             1, 1, file_ptr);
-    flag_palette         = (flags & FLAG_PALETTE)   == FLAG_PALETTE;
-    flag_font            = (flags & FLAG_FONT)      == FLAG_FONT;
-    flag_compress        = (flags & FLAG_COMPRESS)  == FLAG_COMPRESS;
-    file->flag_non_blink = (flags & FLAG_NON_BLINK) == FLAG_NON_BLINK;
-    flag_char_512        = (flags & FLAG_CHAR_512)  == FLAG_CHAR_512;
+    fread(id,                     1, 4, file_ptr);
+    fread(&eof,                   1, 1, file_ptr);
+    fread(&file->screen->columns, 2, 1, file_ptr);
+    fread(&file->screen->rows,    2, 1, file_ptr);
+    fread(&font_height,           1, 1, file_ptr);
+    fread(&flags,                 1, 1, file_ptr);
+    flag_palette                      = (flags & FLAG_PALETTE)   == FLAG_PALETTE;
+    flag_font                         = (flags & FLAG_FONT)      == FLAG_FONT;
+    flag_compress                     = (flags & FLAG_COMPRESS)  == FLAG_COMPRESS;
+    file->screen->non_blink           = (flags & FLAG_NON_BLINK) == FLAG_NON_BLINK;
+    flag_char_512                     = (flags & FLAG_CHAR_512)  == FLAG_CHAR_512;
+    file->screen->letter_spacing      = false;
+    file->screen->legacy_aspect_ratio = false;
     if(flag_palette)
     {
-        file->palette = load_palette(file_ptr);
+        file->screen->palette = load_palette(file_ptr);
     }
     else
     {
-        file->palette = get_preset_palette(BINARY_PALETTE);
+        file->screen->palette = get_preset_palette(BINARY_PALETTE);
     }
     if(flag_font)
     {
         if(flag_char_512)
         {
-            file->font = load_font(font_height, 512, file_ptr);
+            file->screen->font = load_font(font_height, 512, file_ptr);
         }
         else
         {
-            file->font = load_font(font_height, 256, file_ptr);
+            file->screen->font = load_font(font_height, 256, file_ptr);
         }
     }
     else
     {
-        file->font = get_preset_font(CP437_8x16);
+        file->screen->font = get_preset_font(CP437_8x16);
     }
-    if(file->columns > 0 && file->rows > 0)
+    if(file->screen->columns > 0 && file->screen->rows > 0)
     {
-        image_bytes_length = file->columns * file->rows * 2;
-        file->image_bytes = malloc(image_bytes_length);
         if(!flag_compress)
         {
-            fread(file->image_bytes, 1, image_bytes_length, file_ptr);
+            load_screen(file->screen, file_ptr);
         }
         else
         {
-            decompress(file->image_bytes, image_bytes_length, file_ptr);
+            image_bytes_length = file->screen->columns * file->screen->rows * 2;
+            file->screen->data = malloc(image_bytes_length);
+            decompress(file->screen->data, image_bytes_length, file_ptr);
         }
     }
     else
     {
-        file->image_bytes = NULL;
+        file->screen = NULL;
     }
     fclose(file_ptr);
     return file;
@@ -131,26 +136,18 @@ void free_xbin_file(XBinFile *file)
 {
     if(file != NULL)
     {
-        if(file->image_bytes != NULL)
-        {
-            free(file->image_bytes);
-        }
+        free_screen(file->screen);
         if(file->sauce != NULL)
         {
             free(file->sauce);
         }
-        free_palette(file->palette);
-        free_font(file->font);
         free(file);
     }
 }
 
 void debug_xbin_file(XBinFile *file)
 {
-    printf("XBin columns: %i\n",             file->columns);
-    printf("XBin rows: %i\n",                file->rows);
-    debug_palette(file->palette);
-    debug_font(file->font);
+    debug_screen(file->screen);
     printf("XBin actual file size (excluding Sauce record and comments, in bytes): %d\n", file->actual_file_size);
     if(file->sauce != NULL)
     {
@@ -158,33 +155,11 @@ void debug_xbin_file(XBinFile *file)
     }
 }
 
-Canvas* xbin_file_to_canvas(XBinFile *file)
-{
-    Canvas  *canvas = create_canvas(file->columns * file->font->width, file->rows * file->font->height);
-    uint8_t ascii_code, foreground, background;
-    for(uint32_t y = 0, i = 0; y < file->rows; y += 1)
-    {
-        for(uint32_t x = 0; x < file->columns; x += 1, i += 2)
-        {
-            ascii_code = file->image_bytes[i];
-            foreground = file->image_bytes[i + 1] & 0xf;
-            background = file->image_bytes[i + 1] >> 4;
-            if(!file->flag_non_blink && background >= 8)
-            {
-                background -= 8;
-            }
-            draw_glyph(canvas, ascii_code, foreground, background, x, y, file->palette, file->font);
-        }
-    }
-    canvas->font_height = file->font->height;
-    return canvas;
-}
-
 Canvas* load_xbin_file_and_generate_canvas(char const *filename)
 {
     XBinFile* file = load_xbin(filename);
     debug_xbin_file(file);
-    Canvas *canvas = xbin_file_to_canvas(file);
+    Canvas *canvas = screen_to_canvas(file->screen);
     free_xbin_file(file);
     return canvas;
 }

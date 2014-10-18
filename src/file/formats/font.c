@@ -36,6 +36,9 @@ Font* get_preset_font(FontType type)
     }
 }
 
+/*
+    TODO eliminate height and length arguments
+*/
 Font* load_font(uint8_t height, uint16_t length, FILE *file_ptr)
 {
     Font *font   = malloc(sizeof(Font));
