@@ -1,12 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "tundra.h"
-#include "../sauce.h"
-#include "../../image/canvas.h"
+#include "../file.h"
 #include "screen.h"
 #include "palette.h"
 #include "font.h"
+#include "../sauce.h"
 
 uint32_t get_tundra_32_bit_number(FILE *file_ptr)
 {
@@ -15,22 +14,23 @@ uint32_t get_tundra_32_bit_number(FILE *file_ptr)
     return ((uint32_t) bytes[0] << 24) + ((uint32_t) bytes[1] << 16) + ((uint32_t) bytes[2] << 8) + (uint32_t) bytes[3];
 }
 
-TundraFile* load_tundra(char const *filename)
+TextArtFile* load_tundra_file(char const *filename)
 {
-    TundraFile *file;
-    FILE       *file_ptr;
-    uint8_t    magic_number[9];
-    uint8_t    ascii_code;
-    uint8_t    *foreground = calloc(3, 1);
-    uint8_t    *background = calloc(3, 1);
-    file                   = malloc(sizeof(TundraFile));
-    file->screen           = create_screen_with_font(RGB_DATA, CP437_8x16);
-    file_ptr               = fopen(filename, "r");
-    file->sauce            = get_sauce(file_ptr);
-    file->actual_file_size = get_actual_file_size(file_ptr, file->sauce);
-    file->screen->columns  = t_info_1(file->sauce, 80);
+    TextArtFile *file;
+    FILE        *file_ptr;
+    uint8_t     magic_number[9];
+    uint8_t     ascii_code;
+    uint8_t     *foreground = calloc(3, 1);
+    uint8_t     *background = calloc(3, 1);
+    file                    = malloc(sizeof(TextArtFile));
+    file->screen            = create_screen_with_font(RGB_DATA, CP437_8x16);
+    file->screen->non_blink = true;
+    file_ptr                = fopen(filename, "r");
+    file->sauce             = get_sauce(file_ptr);
+    file->length            = get_real_file_size(file_ptr, file->sauce);
+    file->screen->columns   = t_info_1(file->sauce, 80);
     fread(magic_number, 1, 9, file_ptr);
-    for(uint16_t i = 9, x = 0, y = 0; i < file->actual_file_size;)
+    for(uint16_t i = 9, x = 0, y = 0; i < file->length;)
     {
         if(x == file->screen->columns)
         {
@@ -77,36 +77,4 @@ TundraFile* load_tundra(char const *filename)
     free(foreground);
     free(background);
     return file;
-}
-
-void free_tundra_file(TundraFile *file)
-{
-    if(file != NULL)
-    {
-        free_screen(file->screen);
-        if(file->sauce != NULL)
-        {
-            free(file->sauce);
-        }
-        free(file);
-    }
-}
-
-void debug_tundra_file(TundraFile *file)
-{
-    debug_screen(file->screen);
-    printf("Tundra actual file size (excluding Sauce record and comments, in bytes): %d\n", file->actual_file_size);
-    if(file->sauce != NULL)
-    {
-        debug_sauce(file->sauce);
-    }
-}
-
-Canvas* load_tundra_file_and_generate_canvas(char const *filename)
-{
-    TundraFile* file = load_tundra(filename);
-    debug_tundra_file(file);
-    Canvas *canvas = screen_to_canvas(file->screen);
-    free_tundra_file(file);
-    return canvas;
 }

@@ -1,4 +1,6 @@
 #include "file.h"
+#include "sauce.h"
+#include "formats/screen.h"
 #include "../image/canvas.h"
 #include "formats/artworx.h"
 #include "formats/binary.h"
@@ -6,6 +8,29 @@
 #include "formats/pcboard.h"
 #include "formats/tundra.h"
 #include "formats/xbin.h"
+
+void debug_text_art_file(TextArtFile *file)
+{
+    debug_screen(file->screen);
+    printf("Actual file size (excluding Sauce metadata): %d\n", file->length);
+    if(file->sauce != NULL)
+    {
+        debug_sauce(file->sauce);
+    }
+}
+
+void free_text_art_file(TextArtFile *file)
+{
+    if(file != NULL)
+    {
+        free_screen(file->screen);
+        if(file->sauce != NULL)
+        {
+            free(file->sauce);
+        }
+        free(file);
+    }
+}
 
 FileType extension_check(char const *filename)
 {
@@ -52,32 +77,42 @@ FileType extension_check(char const *filename)
 
 Canvas* read_file_and_generate_canvas(char const *filename)
 {
+    TextArtFile *file = NULL;
+    Canvas *canvas = NULL;
     switch(extension_check(filename))
     {
         case UNKNOWN:
         return NULL;
         break;
         case ARTWORX:
-        return load_artworx_file_and_generate_canvas(filename);
+        file = load_artworx_file(filename);
         break;
         case ANSI:
         break;
         case ANSIEDIT:
         break;
         case BINARY:
-        return load_binary_file_and_generate_canvas(filename);
+        file = load_binary_file(filename);
         break;
         case ICE_DRAW:
-        return load_ice_draw_file_and_generate_canvas(filename);
+        file = load_ice_draw_file(filename);
         break;
         case PC_BOARD:
-        return load_pcboard_file_and_generate_canvas(filename);
+        file = load_pcboard_file(filename);
         break;
         case TUNDRA:
-        return load_tundra_file_and_generate_canvas(filename);
+        file = load_tundra_file(filename);
         break;
         case XBIN:
-        return load_xbin_file_and_generate_canvas(filename);
+        file = load_xbin_file(filename);
+        break;
     }
-    return NULL;
+    if(file != NULL)
+    {
+        debug_text_art_file(file);
+        canvas = screen_to_canvas(file->screen);
+        free_text_art_file(file);
+    }
+    return canvas;
 }
+

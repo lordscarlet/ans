@@ -1,12 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "xbin.h"
-#include "../sauce.h"
-#include "../../image/canvas.h"
+#include "../file.h"
 #include "screen.h"
 #include "palette.h"
 #include "font.h"
+#include "../sauce.h"
 
 enum Flags
 {
@@ -61,19 +60,19 @@ void decompress(uint8_t *image_bytes, uint32_t image_bytes_length, FILE *file_pt
     }
 }
 
-XBinFile* load_xbin(char const *filename)
+TextArtFile* load_xbin_file(char const *filename)
 {
-    char id[5];
-    uint8_t eof, font_height, flags;
-    bool flag_palette, flag_font, flag_compress, flag_char_512;
-    FILE *file_ptr;
-    XBinFile *file;
-    uint32_t image_bytes_length;
-    file_ptr = fopen(filename, "r");
-    file = malloc(sizeof(XBinFile));
-    file->screen = create_screen(CHARACTER_AND_ATTRIBUTE_PAIR);
-    file->sauce = get_sauce(file_ptr);
-    file->actual_file_size = get_actual_file_size(file_ptr, file->sauce);
+    char        id[5];
+    uint8_t     eof, font_height, flags;
+    bool        flag_palette, flag_font, flag_compress, flag_char_512;
+    FILE        *file_ptr;
+    TextArtFile *file;
+    uint32_t    image_bytes_length;
+    file_ptr               = fopen(filename, "r");
+    file                   = malloc(sizeof(TextArtFile));
+    file->screen           = create_screen(CHARACTER_AND_ATTRIBUTE_PAIR);
+    file->sauce            = get_sauce(file_ptr);
+    file->length           = get_real_file_size(file_ptr, file->sauce);
     id[4] = 0;
     fread(id,                     1, 4, file_ptr);
     fread(&eof,                   1, 1, file_ptr);
@@ -130,36 +129,4 @@ XBinFile* load_xbin(char const *filename)
     }
     fclose(file_ptr);
     return file;
-}
-
-void free_xbin_file(XBinFile *file)
-{
-    if(file != NULL)
-    {
-        free_screen(file->screen);
-        if(file->sauce != NULL)
-        {
-            free(file->sauce);
-        }
-        free(file);
-    }
-}
-
-void debug_xbin_file(XBinFile *file)
-{
-    debug_screen(file->screen);
-    printf("XBin actual file size (excluding Sauce record and comments, in bytes): %d\n", file->actual_file_size);
-    if(file->sauce != NULL)
-    {
-        debug_sauce(file->sauce);
-    }
-}
-
-Canvas* load_xbin_file_and_generate_canvas(char const *filename)
-{
-    XBinFile* file = load_xbin(filename);
-    debug_xbin_file(file);
-    Canvas *canvas = screen_to_canvas(file->screen);
-    free_xbin_file(file);
-    return canvas;
 }

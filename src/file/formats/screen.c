@@ -124,6 +124,14 @@ void free_screen(Screen *screen)
 {
     if(screen != NULL)
     {
+        if(screen->palette != NULL)
+        {
+            free_palette(screen->palette);
+        }
+        if(screen->font != NULL)
+        {
+            free_font(screen->font);
+        }
         if(screen->data != NULL)
         {
             free(screen->data);

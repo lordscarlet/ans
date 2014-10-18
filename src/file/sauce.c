@@ -117,7 +117,7 @@ void debug_sauce(Sauce *sauce)
     print_sauce_string(sauce->t_info_s, sizeof(sauce->t_info_s));
 }
 
-uint32_t get_actual_file_size(FILE *file_ptr, Sauce *sauce)
+uint32_t get_real_file_size(FILE *file_ptr, Sauce *sauce)
 {
     long current;
     uint32_t size;
