@@ -19,7 +19,7 @@ all: $(OUT)
 $(OUT): main.o file.o sauce.o palette.o font.o screen.o artworx.o ansi.o ansiedit.o ascii.o binary.o icedraw.o pcboard.o tundra.o xbin.o window.o event.o canvas.o
 	$(CXX) $(LDFLAGS) $^ -o $@
 
-main.o: src/main.c src/file/file.h src/image/canvas.h src/ui/window.h
+main.o: src/main.c src/file/file.h src/image/canvas.h src/ui/window.h src/ui/event.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 file.o: src/file/file.c src/file/file.h src/file/formats/screen.h src/file/sauce.h src/image/canvas.h src/file/formats/artworx.h src/file/formats/ansi.h src/file/formats/ansiedit.h src/file/formats/ascii.h src/file/formats/binary.h src/file/formats/icedraw.h src/file/formats/pcboard.h src/file/formats/tundra.h src/file/formats/xbin.h
@@ -70,7 +70,7 @@ xbin.o: src/file/formats/xbin.c src/file/formats/xbin.h src/file/file.h src/file
 canvas.o: src/image/canvas.c src/image/canvas.h src/file/formats/screen.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
-event.o: src/ui/event.c src/image/canvas.h
+event.o: src/ui/event.c src/ui/event.h src/image/canvas.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 clean:

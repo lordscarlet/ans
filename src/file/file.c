@@ -103,6 +103,7 @@ Canvas* read_file_and_generate_canvas(char const *filename)
     TextArtFile *file = NULL;
     Canvas *canvas    = NULL;
     uint16_t actual_columns;
+    printf("%s\n", filename);
     switch(extension_check(filename))
     {
         case UNKNOWN:

@@ -38,14 +38,14 @@ TextmodeDisplay* init_window(bool full_screen)
     return display;
 }
 
-void update_window(TextmodeDisplay *display, Canvas *canvas)
+EventLoopReturnType update_window(TextmodeDisplay *display, Canvas *canvas)
 {
     if(!display->full_screen)
     {
         display->width = canvas->width;
         SDL_SetWindowSize(display->window, (int) display->width, (int) display->height);
     }
-    event_loop(display->width, display->height, display->renderer, canvas);
+    return event_loop(display->width, display->height, display->renderer, canvas);
 }
 
 void end_window(TextmodeDisplay *display)

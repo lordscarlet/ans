@@ -2,6 +2,7 @@
 #include <SDL.h>
 #include <time.h>
 
+#include "event.h"
 #include "../image/canvas.h"
 
 uint32_t MAX_TEXTURES = 8;
@@ -87,7 +88,7 @@ void joy_loop(uint32_t width, uint32_t height, SDL_Renderer *renderer, TextureCo
     }
 }
 
-void key_event(uint32_t width, uint32_t height, SDL_Renderer *renderer, TextureCollection* textures, SDL_KeyboardEvent *event, int32_t *y_pos, bool *quit)
+EventLoopReturnType key_event(uint32_t width, uint32_t height, SDL_Renderer *renderer, TextureCollection* textures, SDL_KeyboardEvent *event, int32_t *y_pos)
 {
     
     bool shift = (event->keysym.mod & KMOD_LSHIFT) || (event->keysym.mod & KMOD_RSHIFT);
@@ -126,10 +127,14 @@ void key_event(uint32_t width, uint32_t height, SDL_Renderer *renderer, TextureC
         }
         draw_textures(width, height, renderer, textures, y_pos);
         break;
-        case SDLK_ESCAPE:
-        *quit = true;
-        break;
+        case SDLK_j:
+        return EVENT_LOOP_NEXT;
+        case SDLK_k:
+        return EVENT_LOOP_PREV;
+        case SDLK_q: case SDLK_ESCAPE:
+        return EVENT_LOOP_QUIT;
     }
+    return EVENT_LOOP_NONE;
 }
 
 void generate_initial_textures(SDL_Renderer *renderer, TextureCollection* textures)
@@ -149,31 +154,36 @@ void generate_initial_textures(SDL_Renderer *renderer, TextureCollection* textur
     }
 }
 
-void event_loop(uint32_t width, uint32_t height, SDL_Renderer *renderer, Canvas *canvas)
+EventLoopReturnType event_loop(uint32_t width, uint32_t height, SDL_Renderer *renderer, Canvas *canvas)
 {
     TextureCollection* textures = create_textures(renderer, canvas);
     SDL_Joystick *joystick = SDL_JoystickOpen(0);
     SDL_Event event;
-    bool quit = false;
+    EventLoopReturnType event_return;
     int32_t y_pos = 0;
     generate_initial_textures(renderer, textures);
     draw_textures(width, height, renderer, textures, &y_pos);
-    while(!quit)
+    while(true)
     {
         SDL_WaitEventTimeout(&event, 50);
         switch(event.type)
         {
             case SDL_QUIT:
-            quit = true;
-            break;
+            return EVENT_LOOP_QUIT;
             case SDL_JOYAXISMOTION:
             joy_loop(width, height, renderer, textures, joystick, &y_pos);
             break;
             case SDL_JOYBUTTONDOWN:
-            quit = true;
-            break;
+            return EVENT_LOOP_QUIT;
             case SDL_KEYDOWN:
-            key_event(width, height, renderer, textures, &event.key, &y_pos, &quit);
+            event_return = key_event(width, height, renderer, textures, &event.key, &y_pos);
+            switch(event_return)
+            {
+                case EVENT_LOOP_QUIT: case EVENT_LOOP_NEXT: case EVENT_LOOP_PREV:
+                return event_return;
+                default:
+                break;
+            }
             break;
             
         }

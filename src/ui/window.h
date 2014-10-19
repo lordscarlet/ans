@@ -5,6 +5,7 @@
 #include <SDL.h>
 
 #include "../image/canvas.h"
+#include "event.h"
 
 typedef struct
 {
@@ -17,7 +18,7 @@ typedef struct
 
 TextmodeDisplay* init_window(bool full_screen);
 
-void update_window(TextmodeDisplay *display, Canvas *canvas);
+EventLoopReturnType update_window(TextmodeDisplay *display, Canvas *canvas);
 
 void end_window(TextmodeDisplay *display);
 
