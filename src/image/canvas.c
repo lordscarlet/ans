@@ -145,6 +145,7 @@ Canvas* screen_to_canvas(Screen *screen)
 {
     Canvas  *canvas = create_canvas(screen->columns * screen->font->width, screen->rows * screen->font->height);
     uint8_t ascii_code, foreground, background;
+    uint8_t *draw_foreground, *draw_background;
     switch(screen->type)
     {
         case CHARACTERS:
@@ -180,6 +181,38 @@ Canvas* screen_to_canvas(Screen *screen)
             {
                 ascii_code = screen->data[i];
                 draw_rgb_glyph(canvas, ascii_code, screen->data + i + 1, screen->data + i + 4, x, y, screen->font);
+            }
+        }
+        break;
+        case CHARACTER_AND_ATTRIBUTE_PAIR_WITH_RGB:
+        for(uint32_t y = 0, i = 0; y < screen->rows; y += 1)
+        {
+            for(uint32_t x = 0; x < screen->columns; x += 1, i += 10)
+            {
+                ascii_code = screen->data[i];
+                foreground = screen->data[i + 1] & 0xf;
+                background = screen->data[i + 1] >> 4;
+                if(!screen->non_blink && background >= 8)
+                {
+                    background -= 8;
+                }
+                if(screen->data[i + 2] == NON_RGB_ATTRIBUTE_DATA)
+                {
+                    draw_foreground = screen->palette->rgb_bytes + foreground * 3;
+                }
+                else
+                {
+                    draw_foreground = screen->data + i + 3;
+                }
+                if(screen->data[i + 6] == NON_RGB_ATTRIBUTE_DATA)
+                {
+                    draw_background = screen->palette->rgb_bytes + background * 3;
+                }
+                else
+                {
+                    draw_background = screen->data + i + 7;
+                }
+                draw_rgb_glyph(canvas, ascii_code, draw_foreground, draw_background, x, y, screen->font);
             }
         }
         break;

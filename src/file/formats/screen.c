@@ -92,6 +92,9 @@ void debug_screen(Screen *screen)
             case RGB_DATA:
             printf("RGB data\n");
             break;
+            case CHARACTER_AND_ATTRIBUTE_PAIR_WITH_RGB:
+            printf("Character and attribute byte-pair with 24bit color escape sequences\n");
+            break;
         }
         printf("Screen columns: %i\n", screen->columns);
         printf("Screen rows: %i\n",    screen->rows);
@@ -160,16 +163,86 @@ void free_screen(Screen *screen)
 void put_character_and_attribute_pair_on_screen(Screen *screen, uint16_t *x, uint16_t *y, uint8_t ascii_code, uint8_t attribute)
 {
     uint32_t data_position, new_length;
-    void*    new_data;
+    void     *new_data;
+    switch(screen->type)
+    {
+        case CHARACTER_AND_ATTRIBUTE_PAIR:
+        if(screen->data == NULL)
+        {
+            screen->length = SCREEN_CHUNK_LENGTH * screen->columns * 2;
+            screen->data   = calloc(screen->length, 1);
+        }
+        data_position = (*y * screen->columns + *x) * 2;
+        if(data_position >= screen->length)
+        {
+            new_length = (*y + SCREEN_CHUNK_LENGTH) * screen->columns * 2;
+            new_data   = calloc(new_length, 1);
+            memcpy(new_data, screen->data, (size_t) screen->length);
+            free(screen->data);
+            screen->length = new_length;
+            screen->data   = new_data;
+        }
+        screen->data[data_position + 0] = ascii_code;
+        screen->data[data_position + 1] = attribute;
+        *x += 1;
+        if(*x == screen->columns)
+        {
+            *x = 0;
+            *y += 1;
+        }
+        if(*y + 1 > screen->rows)
+        {
+            screen->rows = *y + 1;
+        }
+        break;
+        case CHARACTER_AND_ATTRIBUTE_PAIR_WITH_RGB:
+        if(screen->data == NULL)
+        {
+            screen->length = SCREEN_CHUNK_LENGTH * screen->columns * 10;
+            screen->data   = calloc(screen->length, 1);
+        }
+        data_position = (*y * screen->columns + *x) * 10;
+        if(data_position >= screen->length)
+        {
+            new_length = (*y + SCREEN_CHUNK_LENGTH) * screen->columns * 10;
+            new_data   = calloc(new_length, 1);
+            memcpy(new_data, screen->data, (size_t) screen->length);
+            free(screen->data);
+            screen->length = new_length;
+            screen->data   = new_data;
+        }
+        screen->data[data_position + 0] = ascii_code;
+        screen->data[data_position + 1] = attribute;
+        screen->data[data_position + 2] = NON_RGB_ATTRIBUTE_DATA;
+        *x += 1;
+        if(*x == screen->columns)
+        {
+            *x = 0;
+            *y += 1;
+        }
+        if(*y + 1 > screen->rows)
+        {
+            screen->rows = *y + 1;
+        }
+        break;
+        default:
+        break;
+    }
+}
+
+void put_character_and_attribute_pair_with_optional_rgb_on_screen(Screen *screen, uint16_t *x, uint16_t *y, uint8_t ascii_code, uint8_t attribute, bool foreground_rgb, uint8_t *foreground, bool background_rgb, uint8_t *background)
+{
+    uint32_t data_position, new_length;
+    void     *new_data;
     if(screen->data == NULL)
     {
-        screen->length = SCREEN_CHUNK_LENGTH * screen->columns * 2;
+        screen->length = SCREEN_CHUNK_LENGTH * screen->columns * 10;
         screen->data   = calloc(screen->length, 1);
     }
-    data_position = (*y * screen->columns + *x) * 2;
+    data_position = (*y * screen->columns + *x) * 10;
     if(data_position >= screen->length)
     {
-        new_length = (*y + SCREEN_CHUNK_LENGTH) * screen->columns * 2;
+        new_length = (*y + SCREEN_CHUNK_LENGTH) * screen->columns * 10;
         new_data   = calloc(new_length, 1);
         memcpy(new_data, screen->data, (size_t) screen->length);
         free(screen->data);
@@ -178,6 +251,24 @@ void put_character_and_attribute_pair_on_screen(Screen *screen, uint16_t *x, uin
     }
     screen->data[data_position + 0] = ascii_code;
     screen->data[data_position + 1] = attribute;
+    if(foreground_rgb)
+    {
+        screen->data[data_position + 2] = RGB_ATTRIBUTE_DATA;
+        memcpy(screen->data + data_position + 3, foreground, 3);
+    }
+    else
+    {
+        screen->data[data_position + 2] = NON_RGB_ATTRIBUTE_DATA;
+    }
+    if(background_rgb)
+    {
+        screen->data[data_position + 6] = RGB_ATTRIBUTE_DATA;
+        memcpy(screen->data + data_position + 7, background, 3);
+    }
+    else
+    {
+        screen->data[data_position + 6] = NON_RGB_ATTRIBUTE_DATA;
+    }
     *x += 1;
     if(*x == screen->columns)
     {
@@ -190,10 +281,24 @@ void put_character_and_attribute_pair_on_screen(Screen *screen, uint16_t *x, uin
     }
 }
 
+void strip_rgb_data(Screen *screen)
+{
+    uint8_t  *new_data = malloc(screen->columns * screen->rows * 2);
+    uint32_t current_screen_length = screen->columns * screen->rows * 10;
+    for(uint32_t i = 0, j = 0; i < current_screen_length; i += 10, j += 2)
+    {
+        new_data[j + 0] = screen->data[i + 0];
+        new_data[j + 1] = screen->data[i + 1];
+    }
+    free(screen->data);
+    screen->data = new_data;
+    screen->type = CHARACTER_AND_ATTRIBUTE_PAIR;
+}
+
 void put_rgb_data_on_screen(Screen *screen, uint16_t *x, uint16_t *y, uint8_t ascii_code, uint8_t *foreground, uint8_t *background)
 {
     uint32_t data_position, new_length;
-    void*    new_data;
+    void     *new_data;
     if(screen->data == NULL)
     {
         screen->length = SCREEN_CHUNK_LENGTH * screen->columns * 7;
@@ -227,7 +332,7 @@ void put_rgb_data_on_screen(Screen *screen, uint16_t *x, uint16_t *y, uint8_t as
 void put_character_on_screen(Screen *screen, uint16_t *x, uint16_t *y, uint8_t ascii_code)
 {
     uint32_t data_position, new_length;
-    void*    new_data;
+    void     *new_data;
     if(screen->data == NULL)
     {
         screen->length = SCREEN_CHUNK_LENGTH * screen->columns;
@@ -263,6 +368,48 @@ void clear_screen(Screen *screen)
     screen->rows = 0;
 }
 
+void clear_until_end_of_line_from_current_position(Screen *screen, uint16_t x, uint16_t y)
+{
+    uint32_t screen_position;
+    switch(screen->type)
+    {
+        case CHARACTER_AND_ATTRIBUTE_PAIR_WITH_RGB:
+        screen_position = (y * screen->columns + x) * 10;
+        for(uint16_t i = x; i < screen->columns; i += 1, screen_position += 10)
+        {
+            screen->data[screen_position + 0] = 0;
+            screen->data[screen_position + 1] = 0;
+            screen->data[screen_position + 2] = NON_RGB_ATTRIBUTE_DATA;
+            screen->data[screen_position + 6] = NON_RGB_ATTRIBUTE_DATA;
+        }
+        break;
+        default:
+        break;
+    }
+}
+
+void clear_entire_line_at_current_position(Screen *screen, uint16_t y)
+{
+    uint16_t x = 0;
+    clear_until_end_of_line_from_current_position(screen, x, y);
+}
+
+void clear_until_top_of_screen_from_current_position(Screen *screen, uint16_t y)
+{
+    for(int32_t i = y; i >= screen->rows - 25; i -= 1)
+    {
+        clear_entire_line_at_current_position(screen, (uint16_t) i);
+    }
+}
+
+void clear_until_bottom_of_screen_from_current_position(Screen *screen, uint16_t y)
+{
+    for(uint16_t i = y; i < screen->rows; i += 1)
+    {
+        clear_entire_line_at_current_position(screen, i);
+    }
+}
+
 void truncate_screen_data(Screen *screen)
 {
     switch(screen->type)
@@ -275,6 +422,9 @@ void truncate_screen_data(Screen *screen)
         break;
         case RGB_DATA:
         screen->length = screen->columns * screen->rows * 7;
+        break;
+        case CHARACTER_AND_ATTRIBUTE_PAIR_WITH_RGB:
+        screen->length = screen->columns * screen->rows * 10;
         break;
     }
     screen->data = realloc(screen->data, (size_t) screen->length);
@@ -323,6 +473,18 @@ uint16_t get_actual_columns(Screen *screen)
             }
         }
         break;
+        case CHARACTER_AND_ATTRIBUTE_PAIR_WITH_RGB:
+        for(uint32_t i = 0; y < screen->rows; y += 1)
+        {
+            for(x = 0; x < screen->columns; x += 1, i += 10)
+            {
+                if(screen->data[i] != 0 && x > max_x)
+                {
+                    max_x = x;
+                }
+            }
+        }
+        break;
     }
     return max_x + 1;
 }
@@ -354,6 +516,14 @@ void trim_columns(Screen *screen, uint16_t new_columns)
         for(uint16_t y = 0; y < screen->rows; y += 1)
         {
             memcpy(new_data + new_columns * y * 7, screen->data + screen->columns * y * 7, screen->columns * 7);
+        }
+        break;
+        case CHARACTER_AND_ATTRIBUTE_PAIR_WITH_RGB:
+        screen->length = new_columns * screen->rows * 10;
+        new_data = calloc(screen->length, 1);
+        for(uint16_t y = 0; y < screen->rows; y += 1)
+        {
+            memcpy(new_data + new_columns * y * 10, screen->data + screen->columns * y * 10, screen->columns * 10);
         }
         break;
     }

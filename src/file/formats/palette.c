@@ -4,6 +4,7 @@
 #include "palette.h"
 #include "palettes/ascii_palette.h"
 #include "palettes/binary_palette.h"
+#include "palettes/ansi_palette.h"
 
 void generate_rgb_data(Palette *palette)
 {
@@ -25,6 +26,10 @@ Palette* get_preset_palette(PaletteType type)
         return palette;
         case BINARY_PALETTE:
         palette->bytes = binary_palette;
+        generate_rgb_data(palette);
+        return palette;
+        case ANSI_PALETTE:
+        palette->bytes = ansi_palette;
         generate_rgb_data(palette);
         return palette;
         default:
@@ -83,6 +88,9 @@ void debug_palette(Palette *palette)
         break;
         case BINARY_PALETTE:
         printf("Default binary-ordered palette\n");
+        break;
+        case ANSI_PALETTE:
+        printf("Default ANSI-ordered palette\n");
         break;
     }
 }

@@ -7,7 +7,7 @@
 #include "font.h"
 #include "../sauce.h"
 
-uint16_t DEFAULT_ASCII_COLUMNS = 80;
+uint16_t ASCII_DEFAULT_COLUMNS = 80;
 
 TextArtFile* load_ascii_file(char const *filename)
 {
@@ -22,7 +22,7 @@ TextArtFile* load_ascii_file(char const *filename)
     file_ptr              = fopen(filename, "r");
     file->sauce           = get_sauce(file_ptr);
     file->length          = get_real_file_size(file_ptr, file->sauce);
-    file->screen->columns = t_info_1(file->sauce, DEFAULT_ASCII_COLUMNS);
+    file->screen->columns = t_info_1(file->sauce, ASCII_DEFAULT_COLUMNS);
     use_sauce_ansiflags(file->screen, file->sauce);
     for(uint32_t i = 0; i < file->length; i += 1)
     {
@@ -30,11 +30,8 @@ TextArtFile* load_ascii_file(char const *filename)
         switch(ascii_code)
         {
             case '\n':
-            if(x != 0)
-            {
-                x = 0;
-                y += 1;
-            }
+            x = 0;
+            y += 1;
             break;
             case '\r':
             break;

@@ -3,6 +3,7 @@
 #include "formats/screen.h"
 #include "../image/canvas.h"
 #include "formats/artworx.h"
+#include "formats/ansi.h"
 #include "formats/ansiedit.h"
 #include "formats/ascii.h"
 #include "formats/binary.h"
@@ -105,12 +106,13 @@ Canvas* read_file_and_generate_canvas(char const *filename)
     switch(extension_check(filename))
     {
         case UNKNOWN:
-        return NULL;
+        // file = load_ansi_file(filename);
         break;
         case ARTWORX:
         file = load_artworx_file(filename);
         break;
         case ANSI:
+        file = load_ansi_file(filename);
         break;
         case ANSIEDIT:
         file = load_ansiedit_file(filename);

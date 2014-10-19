@@ -7,7 +7,8 @@
 typedef enum {
     CUSTOM_PALETTE,
     ASCII_PALETTE,
-    BINARY_PALETTE
+    BINARY_PALETTE,
+    ANSI_PALETTE
 } PaletteType;
 
 typedef struct {

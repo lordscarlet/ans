@@ -10,7 +10,8 @@
 typedef enum {
     CHARACTERS,
     CHARACTER_AND_ATTRIBUTE_PAIR,
-    RGB_DATA
+    RGB_DATA,
+    CHARACTER_AND_ATTRIBUTE_PAIR_WITH_RGB
 } ScreenType;
 
 typedef struct {
@@ -22,6 +23,11 @@ typedef struct {
     uint32_t   length;
     bool       non_blink, letter_spacing, legacy_aspect_ratio;
 } Screen;
+
+enum {
+    NON_RGB_ATTRIBUTE_DATA,
+    RGB_ATTRIBUTE_DATA
+};
 
 Screen* create_screen(ScreenType screen_type);
 
@@ -43,9 +49,21 @@ void put_character_and_attribute_pair_on_screen(Screen *screen, uint16_t *x, uin
 
 void put_rgb_data_on_screen(Screen *screen, uint16_t *x, uint16_t *y, uint8_t ascii_code, uint8_t *foreground, uint8_t *background);
 
+void put_character_and_attribute_pair_with_optional_rgb_on_screen(Screen *screen, uint16_t *x, uint16_t *y, uint8_t ascii_code, uint8_t attribute, bool foreground_rgb, uint8_t *foreground, bool background_rgb, uint8_t *background);
+
+void strip_rgb_data(Screen *screen);
+
 void put_character_on_screen(Screen *screen, uint16_t *x, uint16_t *y, uint8_t ascii_code);
 
 void clear_screen(Screen *screen);
+
+void clear_until_end_of_line_from_current_position(Screen *screen, uint16_t x, uint16_t y);
+
+void clear_entire_line_at_current_position(Screen *screen, uint16_t y);
+
+void clear_until_top_of_screen_from_current_position(Screen *screen, uint16_t y);
+
+void clear_until_bottom_of_screen_from_current_position(Screen *screen, uint16_t y);
 
 void truncate_screen_data(Screen *screen);
 
