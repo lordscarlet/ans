@@ -4,7 +4,7 @@
 
 #include "window.h"
 #include "../file/file.h"
-#include "../image/canvas.h"
+#include "canvas.h"
 #include "event.h"
 
 TextmodeDisplay* init_window(bool full_screen)

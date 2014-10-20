@@ -3,7 +3,7 @@
 #include <time.h>
 
 #include "event.h"
-#include "../image/canvas.h"
+#include "canvas.h"
 
 uint32_t MAX_TEXTURES = 8;
 

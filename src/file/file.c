@@ -1,3 +1,7 @@
+#include <stdlib.h>
+#include <string.h>
+#include <strings.h>
+
 #include "file.h"
 #include "sauce.h"
 #include "formats/screen.h"
@@ -140,16 +144,4 @@ TextArtFile* read_text_art_file(char *filename)
         break;
     }
     return file;
-}
-
-Canvas* read_file_and_generate_canvas(char *filename)
-{
-    Canvas      *canvas = NULL;
-    TextArtFile *file   = read_text_art_file(filename);
-    if(file != NULL)
-    {
-        canvas = screen_to_canvas(file->screen);
-        free_text_art_file(file);
-    }
-    return canvas;
 }

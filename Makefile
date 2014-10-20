@@ -37,10 +37,10 @@ font.o: src/file/formats/font.c src/file/file.h src/file/formats/screen.h src/fi
 screen.o: src/file/formats/screen.c src/file/formats/screen.h src/file/formats/palette.h src/file/formats/font.h src/file/sauce.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
-window.o: src/ui/window.c src/ui/window.h src/file/file.h src/image/canvas.h src/ui/event.h
+window.o: src/ui/window.c src/ui/window.h src/file/file.h src/ui/canvas.h src/ui/event.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
-event.o: src/ui/event.c src/ui/event.h src/image/canvas.h
+event.o: src/ui/event.c src/ui/event.h src/ui/canvas.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 # text.o: src/text/text.c src/text/text.h src/file/file.h src/file/formats/screen.h src/file/formats/palette.h
@@ -73,7 +73,7 @@ tundra.o: src/file/formats/tundra.c src/file/formats/tundra.h src/file/file.h sr
 xbin.o: src/file/formats/xbin.c src/file/formats/xbin.h src/file/file.h src/file/formats/screen.h src/file/formats/palette.h src/file/formats/font.h src/file/sauce.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
-canvas.o: src/image/canvas.c src/image/canvas.h src/file/formats/screen.h
+canvas.o: src/ui/canvas.c src/ui/canvas.h src/file/formats/screen.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 clean:

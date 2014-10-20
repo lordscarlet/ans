@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include <SDL.h>
-#include "../image/canvas.h"
+#include "canvas.h"
 
 typedef enum {
     EVENT_LOOP_NONE,

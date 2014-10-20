@@ -3,7 +3,6 @@
 
 #include "formats/screen.h"
 #include "sauce.h"
-#include "../image/canvas.h"
 
 typedef enum {
     UNKNOWN, ARTWORX, ASCII, ANSI, ANSIEDIT, BINARY, DIZ, ICE_DRAW, PC_BOARD, TUNDRA, XBIN
