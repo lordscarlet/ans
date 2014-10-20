@@ -1,7 +1,6 @@
 #include "file.h"
 #include "sauce.h"
 #include "formats/screen.h"
-#include "../image/canvas.h"
 #include "formats/artworx.h"
 #include "formats/ansi.h"
 #include "formats/ansiedit.h"
@@ -35,9 +34,9 @@ void free_text_art_file(TextArtFile *file)
     }
 }
 
-FileType extension_check(char const *filename)
+FileType extension_check(char *filename)
 {
-    char const *dot = strrchr(filename, '.');
+    char *dot = strrchr(filename, '.');
     if(dot == NULL || dot == filename)
     {
         return UNKNOWN;
@@ -98,12 +97,10 @@ FileType extension_check(char const *filename)
     return UNKNOWN;
 }
 
-Canvas* read_file_and_generate_canvas(char const *filename)
+TextArtFile* read_text_art_file(char *filename)
 {
     TextArtFile *file = NULL;
-    Canvas *canvas    = NULL;
     uint16_t actual_columns;
-    printf("%s\n", filename);
     switch(extension_check(filename))
     {
         case UNKNOWN:
@@ -142,12 +139,17 @@ Canvas* read_file_and_generate_canvas(char const *filename)
         file = load_xbin_file(filename);
         break;
     }
+    return file;
+}
+
+Canvas* read_file_and_generate_canvas(char *filename)
+{
+    Canvas      *canvas = NULL;
+    TextArtFile *file   = read_text_art_file(filename);
     if(file != NULL)
     {
-        debug_text_art_file(file);
         canvas = screen_to_canvas(file->screen);
         free_text_art_file(file);
     }
     return canvas;
 }
-

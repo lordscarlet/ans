@@ -3,6 +3,6 @@
 
 #include "../file.h"
 
-TextArtFile* load_artworx_file(char const *filename);
+TextArtFile* load_artworx_file(char *filename);
 
 #endif /* end of include guard: ARTWORX_H_22DDD857 */

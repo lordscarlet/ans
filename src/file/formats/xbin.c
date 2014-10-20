@@ -60,7 +60,7 @@ void decompress_xbin(uint8_t *image_bytes, uint32_t image_bytes_length, FILE *fi
     }
 }
 
-TextArtFile* load_xbin_file(char const *filename)
+TextArtFile* load_xbin_file(char *filename)
 {
     char        id[5];
     uint8_t     eof, font_height, flags;

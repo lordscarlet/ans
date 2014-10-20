@@ -3,6 +3,6 @@
 
 #include "../file.h"
 
-TextArtFile* load_xbin_file(char const *filename);
+TextArtFile* load_xbin_file(char *filename);
 
 #endif /* end of include guard: XBIN_H_1304F866 */

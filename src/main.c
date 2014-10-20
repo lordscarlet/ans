@@ -2,57 +2,45 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#include "file/file.h"
-#include "image/canvas.h"
 #include "ui/window.h"
-#include "ui/event.h"
+
+char** grab_filenames(char const **args, uint32_t filenames_length)
+{
+    char **filenames = malloc(sizeof(char*) * filenames_length);
+    size_t string_length;
+    for(uint32_t i = 0; i < filenames_length; i += 1)
+    {
+        string_length = strlen(args[i]) + 1;
+        filenames[i] = malloc(sizeof(char) * string_length);
+        strcpy(filenames[i], args[i]);
+    }
+    return filenames;
+}
+
+void free_filenames(char **filenames, uint32_t filenames_length)
+{
+    if(filenames != NULL)
+    {
+        for(uint32_t i = 0; i < filenames_length; i += 1)
+        {
+            free(filenames[i]);
+        }
+        free(filenames);
+    }
+}
 
 int main(int argc, char const *argv[])
 {
-    Canvas* canvas;
-    EventLoopReturnType event = EVENT_LOOP_NEXT;
-    bool quit = false;
-    uint32_t i = 1;
+    uint32_t filenames_length;
+    char **filenames;
+    filenames_length = (uint32_t) argc - 1;
+    filenames = grab_filenames(argv + 1, filenames_length);
     if(argc == 1)
     {
         printf("Usage: anscat [file ...]\n");
         return 0;
     }
-    TextmodeDisplay *display = init_window(true);
-    if(display != NULL)
-    {
-        while(!quit) {
-            canvas = read_file_and_generate_canvas(argv[i]);
-            if(canvas != NULL)
-            {
-                debug_canvas(canvas);
-                event = update_window(display, canvas);
-                free_canvas(canvas);
-            }
-            switch(event)
-            {
-                case EVENT_LOOP_QUIT:
-                quit = true;
-                break;
-                case EVENT_LOOP_NEXT:
-                i += 1;
-                if(i == argc)
-                {
-                    quit = true;
-                }
-                break;
-                case EVENT_LOOP_PREV:
-                i -= 1;
-                if(i == 0)
-                {
-                    quit = true;
-                }
-                break;
-                default:
-                break;
-            }
-        }
-        end_window(display);
-    }
+    display_window(filenames, filenames_length, true);
+    free_filenames(filenames, filenames_length);
     return 0;
 }

@@ -4,9 +4,6 @@
 #include <stdbool.h>
 #include <SDL.h>
 
-#include "../image/canvas.h"
-#include "event.h"
-
 typedef struct
 {
     uint32_t width;
@@ -16,10 +13,6 @@ typedef struct
     bool full_screen;
 } TextmodeDisplay;
 
-TextmodeDisplay* init_window(bool full_screen);
-
-EventLoopReturnType update_window(TextmodeDisplay *display, Canvas *canvas);
-
-void end_window(TextmodeDisplay *display);
+void display_window(char **filnames, uint32_t filenames_length, bool display_full_screen);
 
 #endif /* end of include guard: WINDOW_H_A2935005 */

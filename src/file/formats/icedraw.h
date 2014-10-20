@@ -3,6 +3,6 @@
 
 #include "../file.h"
 
-TextArtFile* load_ice_draw_file(char const *filename);
+TextArtFile* load_ice_draw_file(char *filename);
 
 #endif /* end of include guard: ICEDRAW_H_D90DF873 */

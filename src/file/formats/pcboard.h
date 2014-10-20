@@ -3,6 +3,6 @@
 
 #include "../file.h"
 
-TextArtFile* load_pcboard_file(char const *filename);
+TextArtFile* load_pcboard_file(char *filename);
 
 #endif /* end of include guard: PCBOARD_H_58B9C971 */

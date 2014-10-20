@@ -3,6 +3,6 @@
 
 #include "../file.h"
 
-TextArtFile* load_tundra_file(char const *filename);
+TextArtFile* load_tundra_file(char *filename);
 
 #endif /* end of include guard: TUNDRA_H_54B22F20 */

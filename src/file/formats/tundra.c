@@ -14,7 +14,7 @@ uint32_t get_tundra_32_bit_number(FILE *file_ptr)
     return ((uint32_t) bytes[0] << 24) + ((uint32_t) bytes[1] << 16) + ((uint32_t) bytes[2] << 8) + (uint32_t) bytes[3];
 }
 
-TextArtFile* load_tundra_file(char const *filename)
+TextArtFile* load_tundra_file(char *filename)
 {
     TextArtFile *file;
     FILE        *file_ptr;

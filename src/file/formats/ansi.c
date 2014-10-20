@@ -68,7 +68,7 @@ void check_limits(int32_t *x, int32_t *y, Screen *screen)
     }
 }
 
-TextArtFile* load_ansi_file(char const *filename)
+TextArtFile* load_ansi_file(char *filename)
 {
     TextArtFile *file;
     FILE        *file_ptr;

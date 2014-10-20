@@ -15,7 +15,7 @@ typedef struct {
     Sauce    *sauce;
 } TextArtFile;
 
-Canvas* read_file_and_generate_canvas(char const *filename);
+TextArtFile* read_text_art_file(char *filename);
 
 void debug_text_art_file(TextArtFile *file);
 

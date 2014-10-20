@@ -3,6 +3,6 @@
 
 #include "../file.h"
 
-TextArtFile* load_ansi_file(char const *filename);
+TextArtFile* load_ansi_file(char *filename);
 
 #endif /* end of include guard: ANSI_H_5A3D8FAD */

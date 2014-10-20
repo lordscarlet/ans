@@ -12,7 +12,7 @@ uint32_t ICE_DRAW_PALETTE_SIZE     = 48;
 uint32_t ICE_DRAW_IMAGE_DATA_START = 12;
 uint16_t ICE_DRAW_DEFAULT_COLUMNS  = 80;
 
-TextArtFile* load_ice_draw_file(char const *filename)
+TextArtFile* load_ice_draw_file(char *filename)
 {
     TextArtFile *file;
     FILE        *file_ptr;

@@ -9,7 +9,7 @@
 
 uint16_t BINARY_DEFAULT_COLUMNS = 160;
 
-TextArtFile* load_binary_file(char const *filename)
+TextArtFile* load_binary_file(char *filename)
 {
     TextArtFile *file;
     FILE        *file_ptr;

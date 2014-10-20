@@ -13,7 +13,7 @@ uint32_t ARTWORX_PALETTE_LENGTH     = 192;
 uint32_t ARTWORX_FONT_LENGTH        = 4096;
 uint16_t ARTWORX_DEFAULT_COLUMNS    = 80;
 
-TextArtFile* load_artworx_file(char const *filename)
+TextArtFile* load_artworx_file(char *filename)
 {
     uint8_t     version_number;
     uint32_t    image_bytes_length;

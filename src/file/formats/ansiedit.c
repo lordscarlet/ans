@@ -83,7 +83,7 @@ void free_block(Block *block)
     }
 }
 
-TextArtFile* load_ansiedit_file(char const *filename)
+TextArtFile* load_ansiedit_file(char *filename)
 {
     FILE        *file_ptr;
     TextArtFile *file;

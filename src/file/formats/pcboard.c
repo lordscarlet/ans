@@ -38,7 +38,7 @@ uint8_t get_color(uint8_t code)
     return (code - 48) & 0xf;
 }
 
-TextArtFile* load_pcboard_file(char const *filename)
+TextArtFile* load_pcboard_file(char *filename)
 {
     TextArtFile *file;
     FILE        *file_ptr;

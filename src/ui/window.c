@@ -3,6 +3,7 @@
 #include <SDL.h>
 
 #include "window.h"
+#include "../file/file.h"
 #include "../image/canvas.h"
 #include "event.h"
 
@@ -26,7 +27,7 @@ TextmodeDisplay* init_window(bool full_screen)
     else
     {
         display->width  = 640;
-        display->height = 640;
+        display->height = 400;
         SDL_CreateWindowAndRenderer(display->width, display->height, SDL_WINDOW_OPENGL, &display->window, &display->renderer);
     }
     if(display->window == NULL)
@@ -36,16 +37,6 @@ TextmodeDisplay* init_window(bool full_screen)
     }
     SDL_JoystickEventState(SDL_ENABLE);
     return display;
-}
-
-EventLoopReturnType update_window(TextmodeDisplay *display, Canvas *canvas)
-{
-    if(!display->full_screen)
-    {
-        display->width = canvas->width;
-        SDL_SetWindowSize(display->window, (int) display->width, (int) display->height);
-    }
-    return event_loop(display->width, display->height, display->renderer, canvas);
 }
 
 void end_window(TextmodeDisplay *display)
@@ -59,4 +50,55 @@ void end_window(TextmodeDisplay *display)
     SDL_DestroyWindow(display->window);
     SDL_Quit();
     free(display);
+}
+
+void display_window(char **filenames, uint32_t filenames_length, bool display_full_screen)
+{
+    TextArtFile *file;
+    Canvas *canvas;
+    EventLoopReturnType event = EVENT_LOOP_NEXT;
+    bool quit = false;
+    int64_t i = 0;
+    TextmodeDisplay *display = init_window(display_full_screen);
+    if(display != NULL)
+    {
+        while(!quit) {
+            file = read_text_art_file(filenames[i]);
+            if(file != NULL)
+            {
+                canvas = screen_to_canvas(file->screen);
+                if(!display->full_screen)
+                {
+                    display->width = canvas->width;
+                    SDL_SetWindowSize(display->window, (int) display->width, (int) display->height);
+                }
+                event = event_loop(display->width, display->height, display->renderer, canvas);
+                free_text_art_file(file);
+                free_canvas(canvas);
+            }
+            switch(event)
+            {
+                case EVENT_LOOP_QUIT:
+                quit = true;
+                break;
+                case EVENT_LOOP_NEXT:
+                i += 1;
+                if(i == filenames_length)
+                {
+                    quit = true;
+                }
+                break;
+                case EVENT_LOOP_PREV:
+                i -= 1;
+                if(i == -1)
+                {
+                    quit = true;
+                }
+                break;
+                default:
+                break;
+            }
+        }
+        end_window(display);
+    }
 }

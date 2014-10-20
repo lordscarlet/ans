@@ -9,7 +9,7 @@
 
 uint16_t ASCII_DEFAULT_COLUMNS = 80;
 
-TextArtFile* load_ascii_file(char const *filename)
+TextArtFile* load_ascii_file(char *filename)
 {
     TextArtFile *file;
     FILE        *file_ptr;
