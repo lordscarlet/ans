@@ -7,11 +7,12 @@
 #include "font.h"
 #include "../sauce.h"
 
-uint8_t  ARTWORX_PALETTE_ORDERING[] = {0, 1, 2, 3, 4, 5, 20, 7, 56, 57, 58, 59, 60, 61, 62, 63};
-uint32_t ARTWORX_VERSION_LENGTH     = 1;
-uint32_t ARTWORX_PALETTE_LENGTH     = 192;
-uint32_t ARTWORX_FONT_LENGTH        = 4096;
-uint16_t ARTWORX_DEFAULT_COLUMNS    = 80;
+uint8_t  ARTWORX_PALETTE_ORDERING[]     = {0, 1, 2, 3, 4, 5, 20, 7, 56, 57, 58, 59, 60, 61, 62, 63};
+uint32_t ARTWORX_VERSION_LENGTH         = 1;
+uint32_t ARTWORX_PALETTE_LENGTH         = 192;
+uint16_t ARTWORX_DISPLAY_PALETTE_LENGTH = 16;
+uint32_t ARTWORX_FONT_LENGTH            = 4096;
+uint16_t ARTWORX_DEFAULT_COLUMNS        = 80;
 
 TextArtFile* load_artworx_file(char *filename)
 {
@@ -23,7 +24,7 @@ TextArtFile* load_artworx_file(char *filename)
     file                    = malloc(sizeof(TextArtFile));
     file->screen            = create_screen(CHARACTER_AND_ATTRIBUTE_PAIR);
     file->screen->non_blink = true;
-    file->screen->palette   = create_new_palette();
+    file->screen->palette   = create_new_palette(ARTWORX_DISPLAY_PALETTE_LENGTH, PAL_DATA_18BIT);
     file_ptr                = fopen(filename, "r");
     file->sauce             = get_sauce(file_ptr);
     file->length            = get_real_file_size(file_ptr, file->sauce);
@@ -33,7 +34,7 @@ TextArtFile* load_artworx_file(char *filename)
     {
         for(uint8_t j = 0, from = ARTWORX_PALETTE_ORDERING[i] * 3, to = i * 3; j < 3; j += 1, from += 1, to += 1)
         {
-            file->screen->palette->bytes[to] = full_palette[from];
+            file->screen->palette->data[to] = full_palette[from];
         }
     }
     generate_rgb_data(file->screen->palette);

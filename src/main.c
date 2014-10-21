@@ -3,6 +3,7 @@
 #include <stdbool.h>
 
 #include "ui/window.h"
+#include "text/text.h"
 
 char** grab_filenames(char const **args, uint32_t filenames_length)
 {

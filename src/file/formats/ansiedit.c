@@ -11,7 +11,8 @@
 #include "font.h"
 #include "../sauce.h"
 
-uint8_t ANSIEDIT_LZ77_COMPRESSION = 1;
+uint8_t  ANSIEDIT_LZ77_COMPRESSION = 1;
+uint16_t ANSIEDIT_PALETTE_LENGTH   = 16;
 
 typedef struct {
     uint8_t  magic[4];
@@ -118,8 +119,8 @@ TextArtFile* load_ansiedit_file(char *filename)
             }
             else if(memcmp(child->magic, "PALE", 4) == 0)
             {
-                file->screen->palette = create_new_palette();
-                memcpy(file->screen->palette->bytes, child->bytes, 48);
+                file->screen->palette = create_new_palette(ANSIEDIT_PALETTE_LENGTH, PAL_DATA_18BIT);
+                memcpy(file->screen->palette->data, child->bytes, (size_t) ANSIEDIT_PALETTE_LENGTH * 3);
                 generate_rgb_data(file->screen->palette);
             }
             bytes_pos += child->block_length + 9;

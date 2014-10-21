@@ -7,6 +7,8 @@
 #include "font.h"
 #include "../sauce.h"
 
+uint16_t XBIN_PALETTE_LENGTH = 16;
+
 enum Flags
 {
     FLAG_PALETTE   = 1,
@@ -89,7 +91,7 @@ TextArtFile* load_xbin_file(char *filename)
     file->screen->legacy_aspect_ratio = false;
     if(flag_palette)
     {
-        file->screen->palette = load_palette(file_ptr);
+        file->screen->palette = load_palette(file_ptr, XBIN_PALETTE_LENGTH, PAL_DATA_18BIT);
     }
     else
     {

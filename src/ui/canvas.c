@@ -130,11 +130,11 @@ void draw_glyph(Canvas *canvas, uint8_t ascii_code, uint8_t foreground, uint8_t 
         {
             if(font->bits[ascii_code_pos] == 1)
             {
-                memcpy(canvas->data + i, palette->rgb_bytes + palette_foreground_pos, 3);
+                memcpy(canvas->data + i, palette->rgb_data + palette_foreground_pos, 3);
             }
             else
             {
-                memcpy(canvas->data + i, palette->rgb_bytes + palette_background_pos, 3);
+                memcpy(canvas->data + i, palette->rgb_data + palette_background_pos, 3);
             }
         }
         i += (canvas->width - font->width) * 3;
@@ -198,7 +198,7 @@ Canvas* screen_to_canvas(Screen *screen)
                 }
                 if(screen->data[i + 2] == NON_RGB_ATTRIBUTE_DATA)
                 {
-                    draw_foreground = screen->palette->rgb_bytes + foreground * 3;
+                    draw_foreground = screen->palette->rgb_data + foreground * 3;
                 }
                 else
                 {
@@ -206,7 +206,7 @@ Canvas* screen_to_canvas(Screen *screen)
                 }
                 if(screen->data[i + 6] == NON_RGB_ATTRIBUTE_DATA)
                 {
-                    draw_background = screen->palette->rgb_bytes + background * 3;
+                    draw_background = screen->palette->rgb_data + background * 3;
                 }
                 else
                 {

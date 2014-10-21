@@ -8,6 +8,7 @@
 #include "../sauce.h"
 
 uint32_t ICE_DRAW_FONT_SIZE        = 4096;
+uint16_t ICE_DRAW_PALETTE_LENGTH   = 16;
 uint32_t ICE_DRAW_PALETTE_SIZE     = 48;
 uint32_t ICE_DRAW_IMAGE_DATA_START = 12;
 uint16_t ICE_DRAW_DEFAULT_COLUMNS  = 80;
@@ -57,7 +58,7 @@ TextArtFile* load_ice_draw_file(char *filename)
     truncate_screen_data(file->screen);
     fseek(file_ptr, (long) file->length - (ICE_DRAW_FONT_SIZE + ICE_DRAW_PALETTE_SIZE), SEEK_SET);
     file->screen->font    = create_and_load_8x16x256_font(file_ptr);
-    file->screen->palette = load_palette(file_ptr);
+    file->screen->palette = load_palette(file_ptr, ICE_DRAW_PALETTE_LENGTH, PAL_DATA_18BIT);
     fclose(file_ptr);
     return file;
 }

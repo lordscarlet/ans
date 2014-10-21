@@ -14,7 +14,7 @@ TextmodeDisplay* init_window(bool full_screen)
     display->full_screen = full_screen;
     if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) != 0)
     {
-    	return NULL;
+        return NULL;
     }
     if(display->full_screen)
     {
