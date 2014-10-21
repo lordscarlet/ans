@@ -135,8 +135,12 @@ void ans24_main(char **args, uint32_t args_length)
             if(args_length > 1)
             {
                 new_columns = (uint16_t) strtol(args[1], NULL, 10);
-                crop_horizontally(file->screen, new_columns, 80);
             }
+            else
+            {
+                new_columns = 0;
+            }
+            crop_horizontally(file->screen, new_columns, 80);
         }
         out = fopen("out.ans", "w");
         output_file_as_ansi24bit(file, out);

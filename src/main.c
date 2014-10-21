@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
 
-#include "ui/window.h"
 #include "text/text.h"
 #include "other/ans24.h"
 
