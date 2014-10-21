@@ -4,6 +4,7 @@
 
 #include "ui/window.h"
 #include "text/text.h"
+#include "other/ans24.h"
 
 char** grab_filenames(char const **args, uint32_t filenames_length)
 {
@@ -41,7 +42,8 @@ int main(int argc, char const *argv[])
         printf("Usage: anscat [file ...]\n");
         return 0;
     }
-    display_window(filenames, filenames_length, true);
+    // display_window(filenames, filenames_length, true);
+    ans24_main(filenames, filenames_length);
     free_filenames(filenames, filenames_length);
     return 0;
 }

@@ -16,10 +16,13 @@ OUT = ans
 
 all: $(OUT)
 
-$(OUT): main.o file.o sauce.o palette.o font.o screen.o artworx.o ansi.o ansiedit.o ascii.o binary.o icedraw.o pcboard.o tundra.o xbin.o canvas.o window.o event.o text.o utf8.o
+# $(OUT): main.o file.o sauce.o palette.o font.o screen.o artworx.o ansi.o ansiedit.o ascii.o binary.o icedraw.o pcboard.o tundra.o xbin.o canvas.o window.o event.o text.o utf8.o ans24.o
+# 	$(CXX) $(LDFLAGS) $^ -o $@
+
+$(OUT): main.o file.o sauce.o palette.o font.o screen.o artworx.o ansi.o ansiedit.o ascii.o binary.o icedraw.o pcboard.o tundra.o xbin.o canvas.o text.o utf8.o ans24.o
 	$(CXX) $(LDFLAGS) $^ -o $@
 
-main.o: src/main.c src/ui/window.h src/text/text.h
+main.o: src/main.c src/ui/window.h src/text/text.h src/other/ans24.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 file.o: src/file/file.c src/file/file.h src/file/formats/screen.h src/file/sauce.h src/file/formats/artworx.h src/file/formats/ansi.h src/file/formats/ansiedit.h src/file/formats/ascii.h src/file/formats/binary.h src/file/formats/icedraw.h src/file/formats/pcboard.h src/file/formats/tundra.h src/file/formats/xbin.h
@@ -37,11 +40,11 @@ font.o: src/file/formats/font.c src/file/file.h src/file/formats/screen.h src/fi
 screen.o: src/file/formats/screen.c src/file/formats/screen.h src/file/formats/palette.h src/file/formats/font.h src/file/sauce.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
-window.o: src/ui/window.c src/ui/window.h src/file/file.h src/ui/canvas.h src/ui/event.h
-	$(CXX) $(CXXFLAGS) $< -o $@
-
-event.o: src/ui/event.c src/ui/event.h src/ui/canvas.h
-	$(CXX) $(CXXFLAGS) $< -o $@
+# window.o: src/ui/window.c src/ui/window.h src/file/file.h src/ui/canvas.h src/ui/event.h
+# 	$(CXX) $(CXXFLAGS) $< -o $@
+#
+# event.o: src/ui/event.c src/ui/event.h src/ui/canvas.h
+# 	$(CXX) $(CXXFLAGS) $< -o $@
 
 text.o: src/text/text.c src/text/text.h src/text/utf8.h src/file/file.h src/file/formats/screen.h src/file/formats/palette.h
 	$(CXX) $(CXXFLAGS) $< -o $@
@@ -77,6 +80,9 @@ xbin.o: src/file/formats/xbin.c src/file/formats/xbin.h src/file/file.h src/file
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 canvas.o: src/ui/canvas.c src/ui/canvas.h src/file/formats/screen.h
+	$(CXX) $(CXXFLAGS) $< -o $@
+
+ans24.o: src/other/ans24.c src/other/ans24.h src/file/file.h src/file/formats/screen.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 clean:

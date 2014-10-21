@@ -489,6 +489,49 @@ uint16_t get_actual_columns(Screen *screen)
     return max_x + 1;
 }
 
+void crop_horizontally(Screen *screen, uint16_t from, uint16_t new_columns)
+{
+    uint8_t *new_data;
+    switch(screen->type)
+    {
+        case CHARACTERS:
+        screen->length = new_columns * screen->rows;
+        new_data = malloc((size_t) screen->length);
+        for(uint16_t y = 0; y < screen->rows; y += 1)
+        {
+            memcpy(new_data + new_columns * y, screen->data + screen->columns * y + from, new_columns);
+        }
+        break;
+        case CHARACTER_AND_ATTRIBUTE_PAIR:
+        screen->length = new_columns * screen->rows * 2;
+        new_data = malloc((size_t) screen->length);
+        for(uint16_t y = 0; y < screen->rows; y += 1)
+        {
+            memcpy(new_data + new_columns * y * 2, screen->data + (screen->columns * y + from) * 2, new_columns * 2);
+        }
+        break;
+        case RGB_DATA:
+        screen->length = new_columns * screen->rows * 7;
+        new_data = malloc((size_t) screen->length);
+        for(uint16_t y = 0; y < screen->rows; y += 1)
+        {
+            memcpy(new_data + new_columns * y * 7, screen->data + (screen->columns * y + from) * 7, new_columns * 7);
+        }
+        break;
+        case CHARACTER_AND_ATTRIBUTE_PAIR_WITH_RGB:
+        screen->length = new_columns * screen->rows * 10;
+        new_data = malloc((size_t) screen->length);
+        for(uint16_t y = 0; y < screen->rows; y += 1)
+        {
+            memcpy(new_data + new_columns * y * 10, screen->data + (screen->columns * y + from) * 10, new_columns * 10);
+        }
+        break;
+    }
+    free(screen->data);
+    screen->columns = new_columns;
+    screen->data    = new_data;
+}
+
 void trim_columns(Screen *screen, uint16_t new_columns)
 {
     uint8_t *new_data;
@@ -496,7 +539,7 @@ void trim_columns(Screen *screen, uint16_t new_columns)
     {
         case CHARACTERS:
         screen->length = new_columns * screen->rows;
-        new_data = calloc(screen->length, 1);
+        new_data = malloc((size_t) screen->length);
         for(uint16_t y = 0; y < screen->rows; y += 1)
         {
             memcpy(new_data + new_columns * y, screen->data + screen->columns * y, screen->columns);
@@ -504,7 +547,7 @@ void trim_columns(Screen *screen, uint16_t new_columns)
         break;
         case CHARACTER_AND_ATTRIBUTE_PAIR:
         screen->length = new_columns * screen->rows * 2;
-        new_data = calloc(screen->length, 1);
+        new_data = malloc((size_t) screen->length);
         for(uint16_t y = 0; y < screen->rows; y += 1)
         {
             memcpy(new_data + new_columns * y * 2, screen->data + screen->columns * y * 2, screen->columns * 2);
@@ -512,7 +555,7 @@ void trim_columns(Screen *screen, uint16_t new_columns)
         break;
         case RGB_DATA:
         screen->length = new_columns * screen->rows * 7;
-        new_data = calloc(screen->length, 1);
+        new_data = malloc((size_t) screen->length);
         for(uint16_t y = 0; y < screen->rows; y += 1)
         {
             memcpy(new_data + new_columns * y * 7, screen->data + screen->columns * y * 7, screen->columns * 7);
@@ -520,7 +563,7 @@ void trim_columns(Screen *screen, uint16_t new_columns)
         break;
         case CHARACTER_AND_ATTRIBUTE_PAIR_WITH_RGB:
         screen->length = new_columns * screen->rows * 10;
-        new_data = calloc(screen->length, 1);
+        new_data = malloc((size_t) screen->length);
         for(uint16_t y = 0; y < screen->rows; y += 1)
         {
             memcpy(new_data + new_columns * y * 10, screen->data + screen->columns * y * 10, screen->columns * 10);

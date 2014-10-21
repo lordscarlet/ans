@@ -71,4 +71,6 @@ uint16_t get_actual_columns(Screen *screen);
 
 void trim_columns(Screen *screen, uint16_t new_columns);
 
+void crop_horizontally(Screen *screen, uint16_t from, uint16_t length);
+
 #endif /* end of include guard: SCREEN_H_43004382 */
