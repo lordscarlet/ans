@@ -46,6 +46,8 @@ void debug_canvas(Canvas *canvas)
 TextureCollection* create_textures(SDL_Renderer *renderer, Canvas *canvas)
 {
     TextureCollection *textures = malloc(sizeof(TextureCollection));
+    textures->width = canvas->width;
+    textures->height = canvas->height;
     textures->canvas = canvas;
     textures->max_height = TEXTURE_MAX_HEIGHT;
     textures->final_height = textures->canvas->height % textures->max_height;

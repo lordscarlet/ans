@@ -18,6 +18,8 @@ typedef struct
 typedef struct
 {
     SDL_Texture **data;
+    uint32_t width;
+    uint32_t height;
     uint32_t length;
     uint32_t max_height;
     uint32_t final_height;
