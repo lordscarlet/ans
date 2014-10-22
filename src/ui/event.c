@@ -304,7 +304,7 @@ Overlay *create_filename_overlay(uint32_t width, uint32_t height, SDL_Renderer *
     overlay->dst_rect.y = height - 64;
     overlay->visible = true;
     overlay->vanishes = true;
-    overlay->delay = 200;
+    overlay->delay = 50;
     return overlay;
 }
 
