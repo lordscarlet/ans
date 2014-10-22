@@ -4,7 +4,11 @@
 #include <SDL.h>
 
 #include "canvas.h"
+#include "../file/file.h"
+#include "../file/sauce.h"
 #include "../file/formats/screen.h"
+#include "../file/formats/palette.h"
+#include "../file/formats/font.h"
 
 uint32_t TEXTURE_MAX_HEIGHT = 2048;
 
@@ -22,6 +26,7 @@ Canvas* create_canvas(uint32_t width, uint32_t height)
     {
         canvas->data = NULL;
     }
+    canvas->file = NULL;
     return canvas;
 }
 
@@ -32,6 +37,10 @@ void free_canvas(Canvas *canvas)
         if(canvas->data != NULL)
         {
             free(canvas->data);
+        }
+        if(canvas->file != NULL)
+        {
+            free_text_art_file(canvas->file);
         }
         free(canvas);
     }
@@ -143,6 +152,177 @@ void draw_glyph(Canvas *canvas, uint8_t ascii_code, uint8_t foreground, uint8_t 
     }
 }
 
+void draw_box(Canvas *canvas, Font *font, Palette *palette, uint8_t foreground, uint8_t background)
+{
+    uint16_t columns = canvas->width / font->width;
+    uint16_t rows = canvas->height / font->height;
+    draw_glyph(canvas, 201, foreground, background, 0, 0, palette, font);
+    draw_glyph(canvas, 200, foreground, background, 0, rows - 1, palette, font);
+    draw_glyph(canvas, 187, foreground, background, columns - 1, 0, palette, font);
+    draw_glyph(canvas, 187, foreground, background, columns - 1, 0, palette, font);
+    draw_glyph(canvas, 188, foreground, background, columns - 1, rows - 1, palette, font);
+    for(uint16_t x = 1; x < columns - 1; x += 1)
+    {
+        draw_glyph(canvas, 205, foreground, background, x, 0, palette, font);
+        draw_glyph(canvas, 205, foreground, background, x, rows - 1, palette, font);
+    }
+    for(uint16_t y = 1; y < rows - 1; y += 1)
+    {
+        draw_glyph(canvas, 186, foreground, background, 0, y, palette, font);
+        draw_glyph(canvas, 186, foreground, background, columns - 1, y, palette, font);
+    }
+    for(uint16_t y = 1; y < rows - 1; y += 1)
+    {
+        for(uint16_t x = 1; x < columns - 1; x += 1)
+        {
+            draw_glyph(canvas, 219, background, 0, x, y, palette, font);
+        }
+    }
+}
+
+void draw_text(Canvas *canvas, char *text, size_t length, uint8_t foreground, uint8_t background, uint16_t x, uint16_t y, Palette *palette, Font *font)
+{
+    for(size_t i = 0; i < length; i += 1)
+    {
+        draw_glyph(canvas, (uint8_t) text[i], foreground, background, x + i, y, palette, font);
+    }
+}
+
+void draw_number(Canvas *canvas, int64_t number, uint8_t foreground, uint8_t background, uint16_t x, uint16_t y, Palette *palette, Font *font)
+{
+    char string[21];
+    int length = sprintf(string, "%lld", number);
+    for(size_t i = 0; i < length; i += 1)
+    {
+        draw_glyph(canvas, (uint8_t) string[i], foreground, background, x + i, y, palette, font);
+    }
+}
+
+SDL_Texture* create_filename_texture(SDL_Renderer *renderer, uint8_t *string, Sauce *sauce)
+{
+    SDL_Texture *texture;
+    size_t  string_length;
+    Palette *palette = get_preset_palette(ANSI_PALETTE);
+    Font *font = get_preset_font(CP437_8x16);
+    Canvas *canvas;
+    char *title = get_title(sauce);
+    if(title == NULL)
+    {
+        string_length = strlen((char*) string);
+    }
+    else
+    {
+        string_length = strlen((char*) title);
+    }
+    canvas = create_canvas((string_length + 4) * font->width, font->height * 3);
+    draw_box(canvas, font, palette, 15, 4);
+    if(title != NULL)
+    {
+        draw_text(canvas, title, string_length, 15, 4, 2, 1, palette, font);
+        free(title);
+    }
+    else
+    {
+        draw_text(canvas, (char*) string, string_length, 15, 4, 2, 1, palette, font);
+    }
+    free_palette(palette);
+    free_font(font);
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_RENDERER_ACCELERATED, canvas->width, canvas->height);
+    SDL_UpdateTexture(texture, NULL, canvas->data, canvas->width * 3);
+    free_canvas(canvas);
+    return texture;
+}
+
+SDL_Texture* create_sauce_texture(SDL_Renderer *renderer, Sauce *sauce)
+{
+    SDL_Texture *texture;
+    Palette *palette = get_preset_palette(ANSI_PALETTE);
+    Font *font = get_preset_font(CP437_8x16);
+    Canvas *canvas;
+    if(sauce == NULL)
+    {
+        canvas = create_canvas(font->width * 25, font->height * 3);
+        draw_box(canvas, font, palette, 0, 7);
+        draw_text(canvas, "No Sauce Record Found", 21, 0, 7, 2, 1, palette, font);
+    }
+    else
+    {
+        canvas = create_canvas(font->width * 49, font->height * 17);
+        draw_box(canvas, font, palette, 0, 7);
+        draw_text(canvas, "   Title:", 9, 0, 7, 2, 1, palette, font);
+        draw_text(canvas, "  Author:", 9, 0, 7, 2, 2, palette, font);
+        draw_text(canvas, "   Group:", 9, 0, 7, 2, 3, palette, font);
+        draw_text(canvas, "    Date:", 9, 0, 7, 2, 4, palette, font);
+        draw_text(canvas, "Filesize:", 9, 0, 7, 2, 5, palette, font);
+        draw_text(canvas, "Datatype:", 9, 0, 7, 2, 6, palette, font);
+        draw_text(canvas, "Filetype:", 9, 0, 7, 2, 7, palette, font);
+        draw_text(canvas, "  TInfo1:", 9, 0, 7, 2, 8, palette, font);
+        draw_text(canvas, "  TInfo2:", 9, 0, 7, 2, 9, palette, font);
+        draw_text(canvas, "  TInfo3:", 9, 0, 7, 2, 10, palette, font);
+        draw_text(canvas, "  TInfo4:", 9, 0, 7, 2, 11, palette, font);
+        draw_text(canvas, "NonBlink:", 9, 0, 7, 2, 12, palette, font);
+        draw_text(canvas, " Spacing:", 9, 0, 7, 2, 13, palette, font);
+        draw_text(canvas, "As.Ratio:", 9, 0, 7, 2, 14, palette, font);
+        draw_text(canvas, "  TInfoS:", 9, 0, 7, 2, 15, palette, font);
+        draw_text(canvas, sauce->title, 35, 0, 7, 12, 1, palette, font);
+        draw_text(canvas, sauce->author, 20, 0, 7, 12, 2, palette, font);
+        draw_text(canvas, sauce->group, 20, 0, 7, 12, 3, palette, font);
+        draw_text(canvas, sauce->date, 8, 0, 7, 12, 4, palette, font);
+        draw_number(canvas, sauce->file_size, 0, 7, 12, 5, palette, font);
+        draw_number(canvas, sauce->data_type, 0, 7, 12, 6, palette, font);
+        draw_number(canvas, sauce->file_type, 0, 7, 12, 7, palette, font);
+        draw_number(canvas, sauce->t_info_1, 0, 7, 12, 8, palette, font);
+        draw_number(canvas, sauce->t_info_2, 0, 7, 12, 9, palette, font);
+        draw_number(canvas, sauce->t_info_3, 0, 7, 12, 10, palette, font);
+        draw_number(canvas, sauce->t_info_4, 0, 7, 12, 11, palette, font);
+        if(sauce->non_blink)
+        {
+            draw_text(canvas, "On", 2, 0, 7, 12, 12, palette, font);
+        }
+        else
+        {
+            draw_text(canvas, "Off", 3, 0, 7, 12, 12, palette, font);
+        }
+        switch(sauce->letter_spacing)
+        {
+            case NO_LETTER_SPACE_PREFERENCE:
+            draw_text(canvas, "No Preference", 13, 0, 7, 12, 13, palette, font);
+            break;
+            case EIGHT_PIXEL:
+            draw_text(canvas, "8 Pixel Font", 12, 0, 7, 12, 13, palette, font);
+            break;
+            case NINE_PIXEL:
+            draw_text(canvas, "9 Pixel Font", 12, 0, 7, 12, 13, palette, font);
+            break;
+            case INVALID_LETTER_SPACE:
+            draw_text(canvas, "Invalid value", 13, 0, 7, 12, 13, palette, font);
+            break;
+        }
+        switch(sauce->aspect_ratio)
+        {
+            case NO_ASPECT_RATIO_PREFERENCE:
+            draw_text(canvas, "No Preference", 13, 0, 7, 12, 14, palette, font);
+            break;
+            case LEGACY:
+            draw_text(canvas, "Legacy Device", 13, 0, 7, 12, 14, palette, font);
+            break;
+            case MODERN:
+            draw_text(canvas, "Modern Device", 13, 0, 7, 12, 14, palette, font);
+            break;
+            case INVALID_ASPECT_RATIO:
+            draw_text(canvas, "Invalid value", 13, 0, 7, 12, 14, palette, font);
+            break;
+        }
+        draw_text(canvas, sauce->t_info_s, 22, 0, 7, 12, 15, palette, font);
+    }
+    free_palette(palette);
+    free_font(font);
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_RENDERER_ACCELERATED, canvas->width, canvas->height);
+    SDL_UpdateTexture(texture, NULL, canvas->data, canvas->width * 3);
+    free_canvas(canvas);
+    return texture;
+}
+
 Canvas* screen_to_canvas(Screen *screen)
 {
     Canvas  *canvas = create_canvas(screen->columns * screen->font->width, screen->rows * screen->font->height);
@@ -219,6 +399,5 @@ Canvas* screen_to_canvas(Screen *screen)
         }
         break;
     }
-    canvas->font_height = screen->font->height;
     return canvas;
 }

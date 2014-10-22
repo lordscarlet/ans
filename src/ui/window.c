@@ -67,13 +67,13 @@ void display_window(char **filenames, uint32_t filenames_length, bool display_fu
             if(file != NULL)
             {
                 canvas = screen_to_canvas(file->screen);
+                canvas->file = file;
                 if(!display->full_screen)
                 {
                     display->width = canvas->width;
                     SDL_SetWindowSize(display->window, (int) display->width, (int) display->height);
                 }
                 event = event_loop(display->width, display->height, display->renderer, canvas);
-                free_text_art_file(file);
                 free_canvas(canvas);
             }
             switch(event)

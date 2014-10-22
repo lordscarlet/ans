@@ -30,6 +30,7 @@ void free_text_art_file(TextArtFile *file)
     if(file != NULL)
     {
         free_screen(file->screen);
+        free(file->name);
         if(file->sauce != NULL)
         {
             free(file->sauce);
@@ -105,6 +106,7 @@ TextArtFile* read_text_art_file(char *filename)
 {
     TextArtFile *file = NULL;
     uint16_t actual_columns;
+    size_t   filename_length;
     switch(extension_check(filename))
     {
         case UNKNOWN:
@@ -126,7 +128,7 @@ TextArtFile* read_text_art_file(char *filename)
         file = load_binary_file(filename);
         break;
         case DIZ:
-        file = load_ascii_file(filename);
+        file = load_ansi_file(filename);
         actual_columns = get_actual_columns(file->screen);
         trim_columns(file->screen, actual_columns);
         break;
@@ -142,6 +144,12 @@ TextArtFile* read_text_art_file(char *filename)
         case XBIN:
         file = load_xbin_file(filename);
         break;
+    }
+    if(file != NULL)
+    {
+        filename_length = strlen(filename) + 1;
+        file->name = malloc(filename_length);
+        memcpy(file->name, filename, filename_length);
     }
     return file;
 }

@@ -54,6 +54,42 @@ void print_sauce_string(char *sauce_string, size_t size)
     printf("%s\n", string);
 }
 
+size_t length_of_sauce_string(char *text, size_t max_length)
+{
+    int32_t last_pos = -1;
+    for(size_t i = 0; i < max_length; i += 1)
+    {
+        if(text[i] != ' ' && text[i] != 0)
+        {
+            last_pos = i;
+        }
+    }
+    return last_pos + 1;
+}
+
+char* get_title(Sauce *sauce)
+{
+    char *string;
+    size_t length_of_title, length_of_author, string_length;
+    if(sauce == NULL)
+    {
+        return NULL;
+    }
+    length_of_title = length_of_sauce_string(sauce->title, 35);
+    length_of_author = length_of_sauce_string(sauce->author, 20);
+    if(length_of_title == 0 || length_of_author == 0)
+    {
+        return NULL;
+    }
+    string_length = length_of_title + length_of_author + 4;
+    string = malloc(string_length + 1);
+    memcpy(string, sauce->title, length_of_title);
+    memcpy(string + length_of_title, " by ", 4);
+    memcpy(string + length_of_title + 4, sauce->author, length_of_author);
+    string[string_length] = 0;
+    return string;
+}
+
 void debug_sauce(Sauce *sauce)
 {
     printf("Sauce title: ");

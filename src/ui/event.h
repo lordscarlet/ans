@@ -9,7 +9,9 @@ typedef enum {
     EVENT_LOOP_NONE,
     EVENT_LOOP_NEXT,
     EVENT_LOOP_PREV,
-    EVENT_LOOP_QUIT
+    EVENT_LOOP_QUIT,
+    EVENT_LOOP_FILENAME,
+    EVENT_LOOP_SAUCE
 } EventLoopReturnType;
 
 EventLoopReturnType event_loop(uint32_t width, uint32_t height, SDL_Renderer *renderer, Canvas *canvas);

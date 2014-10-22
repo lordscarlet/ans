@@ -9,6 +9,7 @@ typedef enum {
 } FileType;
 
 typedef struct {
+    uint8_t  *name;
     Screen   *screen;
     uint32_t length;
     Sauce    *sauce;

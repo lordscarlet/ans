@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <SDL.h>
 
+#include "../file/file.h"
 #include "../file/formats/screen.h"
 
 typedef struct
@@ -12,7 +13,7 @@ typedef struct
     uint32_t height;
     uint8_t *data;
     uint32_t length;
-    uint8_t font_height;
+    TextArtFile *file;
 } Canvas;
 
 typedef struct
@@ -37,6 +38,10 @@ void render_texture(SDL_Renderer *renderer, TextureCollection *textures, uint32_
 void free_textures(TextureCollection *textures);
 
 void debug_canvas(Canvas *canvas);
+
+SDL_Texture* create_filename_texture(SDL_Renderer *renderer, uint8_t *string, Sauce *sauce);
+
+SDL_Texture* create_sauce_texture(SDL_Renderer *renderer, Sauce *sauce);
 
 Canvas* screen_to_canvas(Screen *screen);
 

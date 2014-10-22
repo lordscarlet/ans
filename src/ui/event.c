@@ -7,7 +7,22 @@
 
 uint32_t MAX_TEXTURES = 8;
 
-void draw_textures(size_t width, size_t height, SDL_Renderer *renderer, TextureCollection* textures, int32_t *x_pos, int32_t *y_pos)
+typedef struct {
+    SDL_Rect    src_rect, dst_rect;
+    uint32_t    width, height;
+    bool        visible;
+    bool        vanishes;
+    size_t      delay;
+    int         start;
+    SDL_Texture *texture;
+} Overlay;
+
+typedef struct {
+    Overlay **data;
+    size_t  length;
+} OverlayCollection;
+
+void draw_textures(size_t width, size_t height, SDL_Renderer *renderer, TextureCollection* textures, OverlayCollection *overlays, int32_t *x_pos, int32_t *y_pos)
 {
     SDL_Rect src_rect, dst_rect;
     if(textures->height < height)
@@ -84,17 +99,39 @@ void draw_textures(size_t width, size_t height, SDL_Renderer *renderer, TextureC
             break;
         }
     }
+    for(size_t i = 0; i < overlays->length; i += 1)
+    {
+        if(overlays->data[i]->visible)
+        {
+            if(overlays->data[i]->vanishes)
+            {
+                if(overlays->data[i]->start == -1)
+                {
+                    overlays->data[i]->start = clock();
+                }
+                else if(((clock() - overlays->data[i]->start) * 1000) / CLOCKS_PER_SEC > overlays->data[i]->delay)
+                {
+                    overlays->data[i]->start = -1;
+                    overlays->data[i]->visible = false; 
+                }
+            }
+            if(overlays->data[i]->visible)
+            {
+                SDL_RenderCopy(renderer, overlays->data[i]->texture, &overlays->data[i]->src_rect, &overlays->data[i]->dst_rect);
+            }
+        }
+    }
     SDL_RenderPresent(renderer);
 }
 
-void mouse_wheel_event(uint32_t width, uint32_t height, SDL_Renderer *renderer, TextureCollection* textures, SDL_MouseWheelEvent *wheel, int32_t *x_pos, int32_t *y_pos)
+void mouse_wheel_event(uint32_t width, uint32_t height, SDL_Renderer *renderer, TextureCollection *textures, OverlayCollection *overlays, SDL_MouseWheelEvent *wheel, int32_t *x_pos, int32_t *y_pos)
 {
-    *x_pos += textures->canvas->font_height * -wheel->x;
-    *y_pos += textures->canvas->font_height * -wheel->y;
-    draw_textures(width, height, renderer, textures, x_pos, y_pos);
+    *x_pos += textures->canvas->file->screen->font->width * -wheel->x;
+    *y_pos += textures->canvas->file->screen->font->height * -wheel->y;
+    draw_textures(width, height, renderer, textures, overlays, x_pos, y_pos);
 }
 
-EventLoopReturnType mouse_button_event(uint32_t width, uint32_t height, SDL_Renderer *renderer, TextureCollection* textures, SDL_MouseButtonEvent *button)
+EventLoopReturnType mouse_button_event(uint32_t width, uint32_t height, SDL_Renderer *renderer, TextureCollection *textures, OverlayCollection *overlays, SDL_MouseButtonEvent *button)
 {
     if(button->state == SDL_PRESSED)
     {
@@ -111,7 +148,7 @@ EventLoopReturnType mouse_button_event(uint32_t width, uint32_t height, SDL_Rend
     return EVENT_LOOP_NONE;
 }
 
-void joy_loop(uint32_t width, uint32_t height, SDL_Renderer *renderer, TextureCollection* textures, SDL_Joystick *joystick, int32_t *x_pos, int32_t *y_pos)
+void joy_loop(uint32_t width, uint32_t height, SDL_Renderer *renderer, TextureCollection* textures, OverlayCollection *overlays, SDL_Joystick *joystick, int32_t *x_pos, int32_t *y_pos)
 {
     int32_t x_joy, y_joy;
     SDL_Event event;
@@ -122,22 +159,22 @@ void joy_loop(uint32_t width, uint32_t height, SDL_Renderer *renderer, TextureCo
         if(x_joy > 2)
         {
             *x_pos += -x_joy - 2;
-            draw_textures(width, height, renderer, textures, x_pos, y_pos);
+            draw_textures(width, height, renderer, textures, overlays, x_pos, y_pos);
         }
         else if (x_joy < -2)
         {
             *x_pos += -x_joy + 2;
-            draw_textures(width, height, renderer, textures, x_pos, y_pos);
+            draw_textures(width, height, renderer, textures, overlays, x_pos, y_pos);
         }
         if(y_joy > 2)
         {
             *y_pos += y_joy - 2;
-            draw_textures(width, height, renderer, textures, x_pos, y_pos);
+            draw_textures(width, height, renderer, textures, overlays, x_pos, y_pos);
         }
         else if (y_joy < -2)
         {
             *y_pos += y_joy + 2;
-            draw_textures(width, height, renderer, textures, x_pos, y_pos);
+            draw_textures(width, height, renderer, textures, overlays, x_pos, y_pos);
         }
         if((x_joy >= -2 && x_joy <= 2) && (y_joy >= -2 && y_joy <= 2))
         {
@@ -146,7 +183,7 @@ void joy_loop(uint32_t width, uint32_t height, SDL_Renderer *renderer, TextureCo
     }
 }
 
-EventLoopReturnType key_event(uint32_t width, uint32_t height, SDL_Renderer *renderer, TextureCollection* textures, SDL_KeyboardEvent *event, int32_t *x_pos, int32_t *y_pos)
+EventLoopReturnType key_event(uint32_t width, uint32_t height, SDL_Renderer *renderer, TextureCollection* textures, OverlayCollection *overlays, SDL_KeyboardEvent *event, int32_t *x_pos, int32_t *y_pos)
 {
     
     bool shift = (event->keysym.mod & KMOD_LSHIFT) || (event->keysym.mod & KMOD_RSHIFT);
@@ -155,46 +192,46 @@ EventLoopReturnType key_event(uint32_t width, uint32_t height, SDL_Renderer *ren
         case SDLK_DOWN:
         if(shift)
         {
-            *y_pos += textures->canvas->font_height * 4;
+            *y_pos += textures->canvas->file->screen->font->height * 4;
         }
         else
         {
-            *y_pos += textures->canvas->font_height;
+            *y_pos += textures->canvas->file->screen->font->height;
         }
-        draw_textures(width, height, renderer, textures, x_pos, y_pos);
+        draw_textures(width, height, renderer, textures, overlays, x_pos, y_pos);
         break;
         case SDLK_UP:
         if(shift)
         {
-            *y_pos -= textures->canvas->font_height * 4;
+            *y_pos -= textures->canvas->file->screen->font->height * 4;
         }
         else
         {
-            *y_pos -= textures->canvas->font_height;
+            *y_pos -= textures->canvas->file->screen->font->height;
         }
-        draw_textures(width, height, renderer, textures, x_pos, y_pos);
+        draw_textures(width, height, renderer, textures, overlays, x_pos, y_pos);
         break;
         case SDLK_LEFT:
         if(shift)
         {
-            *x_pos += textures->canvas->font_height * 4;
+            *x_pos += textures->canvas->file->screen->font->width * 4;
         }
         else
         {
-            *x_pos += textures->canvas->font_height;
+            *x_pos += textures->canvas->file->screen->font->width;
         }
-        draw_textures(width, height, renderer, textures, x_pos, y_pos);
+        draw_textures(width, height, renderer, textures, overlays, x_pos, y_pos);
         break;
         case SDLK_RIGHT:
         if(shift)
         {
-            *x_pos -= textures->canvas->font_height * 4;
+            *x_pos -= textures->canvas->file->screen->font->width * 4;
         }
         else
         {
-            *x_pos -= textures->canvas->font_height;
+            *x_pos -= textures->canvas->file->screen->font->width;
         }
-        draw_textures(width, height, renderer, textures, x_pos, y_pos);
+        draw_textures(width, height, renderer, textures, overlays, x_pos, y_pos);
         break;
         case SDLK_SPACE:
         if(shift)
@@ -205,7 +242,7 @@ EventLoopReturnType key_event(uint32_t width, uint32_t height, SDL_Renderer *ren
         {
             *y_pos += height;
         }
-        draw_textures(width, height, renderer, textures, x_pos, y_pos);
+        draw_textures(width, height, renderer, textures, overlays, x_pos, y_pos);
         break;
         case SDLK_j:
         return EVENT_LOOP_NEXT;
@@ -213,6 +250,10 @@ EventLoopReturnType key_event(uint32_t width, uint32_t height, SDL_Renderer *ren
         return EVENT_LOOP_PREV;
         case SDLK_q: case SDLK_ESCAPE:
         return EVENT_LOOP_QUIT;
+        case SDLK_n:
+        return EVENT_LOOP_FILENAME;
+        case SDLK_i:
+        return EVENT_LOOP_SAUCE;
     }
     return EVENT_LOOP_NONE;
 }
@@ -234,17 +275,83 @@ void generate_initial_textures(SDL_Renderer *renderer, TextureCollection* textur
     }
 }
 
+Overlay *create_overlay(SDL_Texture *texture)
+{
+    int width, height;
+    Overlay *overlay = malloc(sizeof(Overlay));
+    overlay->texture = texture;
+    SDL_QueryTexture(overlay->texture, NULL, NULL, &width, &height);
+    overlay->width = (uint32_t) width;
+    overlay->height = (uint32_t) height;
+    overlay->src_rect.x = 0;
+    overlay->src_rect.y = 0;
+    overlay->src_rect.w = (int) overlay->width;
+    overlay->src_rect.h = (int) overlay->height;
+    overlay->dst_rect.w = (int) overlay->width;
+    overlay->dst_rect.h = (int) overlay->height;
+    overlay->visible = false;
+    overlay->vanishes = false;
+    overlay->delay = 0;
+    overlay->start = -1;
+    return overlay;
+}
+
+Overlay *create_filename_overlay(uint32_t width, uint32_t height, SDL_Renderer *renderer, Canvas *canvas)
+{
+    SDL_Texture *texture = create_filename_texture(renderer, canvas->file->name, canvas->file->sauce);
+    Overlay *overlay = create_overlay(texture);
+    overlay->dst_rect.x = (width - overlay->width) / 2;
+    overlay->dst_rect.y = height - 64;
+    overlay->visible = true;
+    overlay->vanishes = true;
+    overlay->delay = 200;
+    return overlay;
+}
+
+Overlay *create_sauce_overlay(uint32_t width, uint32_t height, SDL_Renderer *renderer, Canvas *canvas)
+{
+    SDL_Texture *texture = create_sauce_texture(renderer, canvas->file->sauce);
+    Overlay *overlay = create_overlay(texture);
+    overlay->dst_rect.x = width - overlay->width - 16;
+    overlay->dst_rect.y = 16;
+    overlay->visible = false;
+    return overlay;
+}
+
+OverlayCollection *create_overlays(uint32_t width, uint32_t height, SDL_Renderer *renderer, Canvas *canvas)
+{
+    OverlayCollection *overlay_collection = malloc(sizeof(OverlayCollection));
+    overlay_collection->length = 2;
+    overlay_collection->data = malloc(sizeof(Overlay*) * overlay_collection->length);
+    overlay_collection->data[0] = create_filename_overlay(width, height, renderer, canvas);
+    overlay_collection->data[1] = create_sauce_overlay(width, height, renderer, canvas);
+    return overlay_collection;
+}
+
+void free_overlays(OverlayCollection *overlays)
+{
+    for(size_t i = 0; i < overlays->length; i += 1)
+    {
+        SDL_DestroyTexture(overlays->data[i]->texture);
+        free(overlays->data[i]);
+    }
+    free(overlays->data);
+    free(overlays);
+}
+
 EventLoopReturnType event_loop(uint32_t width, uint32_t height, SDL_Renderer *renderer, Canvas *canvas)
 {
-    TextureCollection* textures = create_textures(renderer, canvas);
+    TextureCollection *textures = create_textures(renderer, canvas);
+    OverlayCollection *overlays = create_overlays(width, height, renderer, canvas);
     SDL_Joystick *joystick = SDL_JoystickOpen(0);
     SDL_Event event;
-    EventLoopReturnType event_return = EVENT_LOOP_NONE;
+    EventLoopReturnType event_return;
     int32_t x_pos = ((int32_t) width - (int32_t) canvas->width) / 2, y_pos = 0;
     generate_initial_textures(renderer, textures);
-    draw_textures(width, height, renderer, textures, &x_pos, &y_pos);
+    draw_textures(width, height, renderer, textures, overlays, &x_pos, &y_pos);
     while(true)
     {
+        event_return = EVENT_LOOP_NONE;
         SDL_WaitEventTimeout(&event, 50);
         switch(event.type)
         {
@@ -252,28 +359,52 @@ EventLoopReturnType event_loop(uint32_t width, uint32_t height, SDL_Renderer *re
             event_return = EVENT_LOOP_QUIT;
             break;
             case SDL_MOUSEWHEEL:
-            mouse_wheel_event(width, height, renderer, textures, &event.wheel, &x_pos, &y_pos);
+            mouse_wheel_event(width, height, renderer, textures, overlays, &event.wheel, &x_pos, &y_pos);
             break;
             case SDL_MOUSEBUTTONDOWN:
-            event_return = mouse_button_event(width, height, renderer, textures, &event.button);
+            event_return = mouse_button_event(width, height, renderer, textures, overlays, &event.button);
             break;
             case SDL_JOYAXISMOTION:
-            joy_loop(width, height, renderer, textures, joystick, &x_pos, &y_pos);
+            joy_loop(width, height, renderer, textures, overlays, joystick, &x_pos, &y_pos);
             break;
             case SDL_JOYBUTTONDOWN:
             event_return = EVENT_LOOP_QUIT;
             break;
             case SDL_KEYDOWN:
-            event_return = key_event(width, height, renderer, textures, &event.key, &x_pos, &y_pos);
+            event_return = key_event(width, height, renderer, textures, overlays, &event.key, &x_pos, &y_pos);
             break;
         }
         switch(event_return)
         {
             case EVENT_LOOP_QUIT: case EVENT_LOOP_NEXT: case EVENT_LOOP_PREV:
+            SDL_JoystickClose(joystick);
+            free_overlays(overlays);
             free_textures(textures);
             return event_return;
+            break;
+            case EVENT_LOOP_FILENAME:
+            overlays->data[0]->visible = true;
+            break;
+            case EVENT_LOOP_SAUCE:
+            overlays->data[1]->visible = !overlays->data[1]->visible;
+            draw_textures(width, height, renderer, textures, overlays, &x_pos, &y_pos);
+            break;
             default:
             break;
+        }
+        for(size_t i = 0; i < overlays->length; i += 1)
+        {
+            if(overlays->data[i]->visible)
+            {
+                if(overlays->data[i]->start == -1)
+                {
+                    draw_textures(width, height, renderer, textures, overlays, &x_pos, &y_pos);
+                }
+                else if(overlays->data[i]->vanishes && (((clock() - overlays->data[i]->start) * 1000) / CLOCKS_PER_SEC > overlays->data[i]->delay))
+                {
+                    draw_textures(width, height, renderer, textures, overlays, &x_pos, &y_pos);
+                }
+            }
         }
     }
 }

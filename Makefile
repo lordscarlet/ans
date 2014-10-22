@@ -46,7 +46,7 @@ event.o: src/ui/event.c src/ui/event.h src/ui/canvas.h
 text.o: src/text/text.c src/text/text.h src/text/utf8.h src/file/file.h src/file/formats/screen.h src/file/formats/palette.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
-utf8.o: src/text/utf8.c
+utf8.o: src/text/utf8.c src/text/utf8.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 artworx.o: src/file/formats/artworx.c src/file/formats/artworx.h src/file/file.h src/file/formats/screen.h src/file/formats/palette.h src/file/formats/font.h src/file/sauce.h
@@ -76,7 +76,7 @@ tundra.o: src/file/formats/tundra.c src/file/formats/tundra.h src/file/file.h sr
 xbin.o: src/file/formats/xbin.c src/file/formats/xbin.h src/file/file.h src/file/formats/screen.h src/file/formats/palette.h src/file/formats/font.h src/file/sauce.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
-canvas.o: src/ui/canvas.c src/ui/canvas.h src/file/formats/screen.h
+canvas.o: src/ui/canvas.c src/ui/canvas.h src/file/file.h src/file/sauce.h src/file/formats/screen.h src/file/formats/palette.h src/file/formats/font.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 clean:
