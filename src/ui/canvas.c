@@ -198,7 +198,7 @@ void draw_number(Canvas *canvas, int64_t number, uint8_t foreground, uint8_t bac
     }
 }
 
-SDL_Texture* create_filename_texture(SDL_Renderer *renderer, uint8_t *string, Sauce *sauce)
+SDL_Texture* create_title_texture(SDL_Renderer *renderer, uint8_t *string, Sauce *sauce)
 {
     SDL_Texture *texture;
     size_t  string_length;
@@ -208,23 +208,13 @@ SDL_Texture* create_filename_texture(SDL_Renderer *renderer, uint8_t *string, Sa
     char *title = get_title(sauce);
     if(title == NULL)
     {
-        string_length = strlen((char*) string);
+        return NULL;
     }
-    else
-    {
-        string_length = strlen((char*) title);
-    }
+    string_length = strlen((char*) title);
     canvas = create_canvas((string_length + 4) * font->width, font->height * 3);
-    draw_box(canvas, font, palette, 15, 4);
-    if(title != NULL)
-    {
-        draw_text(canvas, title, string_length, 15, 4, 2, 1, palette, font);
-        free(title);
-    }
-    else
-    {
-        draw_text(canvas, (char*) string, string_length, 15, 4, 2, 1, palette, font);
-    }
+    draw_box(canvas, font, palette, 15, 3);
+    draw_text(canvas, title, string_length, 15, 3, 2, 1, palette, font);
+    free(title);
     free_palette(palette);
     free_font(font);
     texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_RENDERER_ACCELERATED, canvas->width, canvas->height);
@@ -314,6 +304,70 @@ SDL_Texture* create_sauce_texture(SDL_Renderer *renderer, Sauce *sauce)
             break;
         }
         draw_text(canvas, sauce->t_info_s, 22, 0, 7, 12, 15, palette, font);
+    }
+    free_palette(palette);
+    free_font(font);
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_RENDERER_ACCELERATED, canvas->width, canvas->height);
+    SDL_UpdateTexture(texture, NULL, canvas->data, canvas->width * 3);
+    free_canvas(canvas);
+    return texture;
+}
+
+void draw_truncated_text(Canvas *canvas, char *text, uint16_t x, uint16_t y, size_t max_length, uint8_t foreground, uint8_t background, Palette *palette, Font *font)
+{
+    size_t string_length = strlen(text);
+    if(string_length > max_length)
+    {
+        draw_text(canvas, "...", 3, foreground, background, x, y, palette, font);
+        draw_text(canvas, text + string_length - max_length + 3, max_length - 3, foreground, background, x + 3, y, palette, font);
+    }
+    else
+    {
+        draw_text(canvas, text, string_length, foreground, background, x, y, palette, font);
+    }
+}
+
+SDL_Texture* create_filename_list_texture(uint32_t height, SDL_Renderer *renderer, char **filenames, uint32_t filenames_length, uint16_t current_filename_index)
+{
+    SDL_Texture *texture;
+    Palette *palette = get_preset_palette(ANSI_PALETTE);
+    Font *font = get_preset_font(CP437_8x16);
+    size_t box_width = 44;
+    size_t box_height = (height / font->height) - 2;
+    size_t list_width = box_width - 4;
+    size_t list_height = box_height - 2;
+    uint8_t foreground = 15;
+    uint8_t background = 4;
+    size_t start_index = 0;
+    if(filenames_length < list_height)
+    {
+        list_height = filenames_length;
+        box_height = list_height + 2;
+    }
+    Canvas *canvas;
+    canvas = create_canvas(font->width * box_width, font->height * box_height);
+    draw_box(canvas, font, palette, foreground, background);
+    if(current_filename_index > list_height / 2)
+    {
+        if(filenames_length - current_filename_index + list_height / 2 < list_height)
+        {
+            start_index = filenames_length - list_height;
+        }
+        else
+        {
+            start_index = current_filename_index - list_height / 2;
+        }
+    }
+    for(size_t i = start_index, y = 0; y < list_height; i += 1, y += 1)
+    {
+        if(i == current_filename_index)
+        {
+            draw_truncated_text(canvas, filenames[i], 2, 1 + y, list_width, background, foreground, palette, font);
+        }
+        else
+        {
+            draw_truncated_text(canvas, filenames[i], 2, 1 + y, list_width, foreground, background, palette, font);
+        }
     }
     free_palette(palette);
     free_font(font);

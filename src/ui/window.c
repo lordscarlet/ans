@@ -59,6 +59,7 @@ void display_window(char **filenames, uint32_t filenames_length, bool display_fu
     EventLoopReturnType event = EVENT_LOOP_NEXT;
     bool quit = false;
     int64_t i = 0;
+    uint16_t current_file_index;
     TextmodeDisplay *display = init_window(display_full_screen);
     if(display != NULL)
     {
@@ -73,7 +74,8 @@ void display_window(char **filenames, uint32_t filenames_length, bool display_fu
                     display->width = canvas->width;
                     SDL_SetWindowSize(display->window, (int) display->width, (int) display->height);
                 }
-                event = event_loop(display->width, display->height, display->renderer, canvas);
+                current_file_index = (uint16_t) i;
+                event = event_loop(display->width, display->height, display->renderer, canvas, filenames, filenames_length, &current_file_index);
                 free_canvas(canvas);
             }
             switch(event)

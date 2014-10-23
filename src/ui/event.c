@@ -101,23 +101,26 @@ void draw_textures(size_t width, size_t height, SDL_Renderer *renderer, TextureC
     }
     for(size_t i = 0; i < overlays->length; i += 1)
     {
-        if(overlays->data[i]->visible)
+        if(overlays->data[i] != NULL)
         {
-            if(overlays->data[i]->vanishes)
-            {
-                if(overlays->data[i]->start == -1)
-                {
-                    overlays->data[i]->start = clock();
-                }
-                else if(((clock() - overlays->data[i]->start) * 1000) / CLOCKS_PER_SEC > overlays->data[i]->delay)
-                {
-                    overlays->data[i]->start = -1;
-                    overlays->data[i]->visible = false; 
-                }
-            }
             if(overlays->data[i]->visible)
             {
-                SDL_RenderCopy(renderer, overlays->data[i]->texture, &overlays->data[i]->src_rect, &overlays->data[i]->dst_rect);
+                if(overlays->data[i]->vanishes)
+                {
+                    if(overlays->data[i]->start == -1)
+                    {
+                        overlays->data[i]->start = clock();
+                    }
+                    else if(((clock() - overlays->data[i]->start) * 1000) / CLOCKS_PER_SEC > overlays->data[i]->delay)
+                    {
+                        overlays->data[i]->start = -1;
+                        overlays->data[i]->visible = false; 
+                    }
+                }
+                if(overlays->data[i]->visible)
+                {
+                    SDL_RenderCopy(renderer, overlays->data[i]->texture, &overlays->data[i]->src_rect, &overlays->data[i]->dst_rect);
+                }
             }
         }
     }
@@ -250,8 +253,10 @@ EventLoopReturnType key_event(uint32_t width, uint32_t height, SDL_Renderer *ren
         return EVENT_LOOP_PREV;
         case SDLK_q: case SDLK_ESCAPE:
         return EVENT_LOOP_QUIT;
-        case SDLK_n:
-        return EVENT_LOOP_FILENAME;
+        case SDLK_t:
+        return EVENT_LOOP_TITLE;
+        case SDLK_l:
+        return EVENT_LOOP_FILE_LIST;
         case SDLK_i:
         return EVENT_LOOP_SAUCE;
     }
@@ -296,15 +301,20 @@ Overlay *create_overlay(SDL_Texture *texture)
     return overlay;
 }
 
-Overlay *create_filename_overlay(uint32_t width, uint32_t height, SDL_Renderer *renderer, Canvas *canvas)
+Overlay *create_title_overlay(uint32_t width, uint32_t height, SDL_Renderer *renderer, Canvas *canvas)
 {
-    SDL_Texture *texture = create_filename_texture(renderer, canvas->file->name, canvas->file->sauce);
-    Overlay *overlay = create_overlay(texture);
+    SDL_Texture *texture = create_title_texture(renderer, canvas->file->name, canvas->file->sauce);
+    Overlay *overlay;
+    if(texture == NULL)
+    {
+        return NULL;
+    }
+    overlay = create_overlay(texture);
     overlay->dst_rect.x = (width - overlay->width) / 2;
     overlay->dst_rect.y = height - 64;
     overlay->visible = true;
     overlay->vanishes = true;
-    overlay->delay = 50;
+    overlay->delay = 150;
     return overlay;
 }
 
@@ -318,13 +328,26 @@ Overlay *create_sauce_overlay(uint32_t width, uint32_t height, SDL_Renderer *ren
     return overlay;
 }
 
-OverlayCollection *create_overlays(uint32_t width, uint32_t height, SDL_Renderer *renderer, Canvas *canvas)
+Overlay *create_filename_list_overlay(uint32_t height, SDL_Renderer *renderer, Canvas *canvas, char **filenames, uint32_t filenames_length, uint16_t current_filename_index)
+{
+    SDL_Texture *texture = create_filename_list_texture(height, renderer, filenames, filenames_length, current_filename_index);
+    Overlay *overlay = create_overlay(texture);
+    overlay->dst_rect.x = 16;
+    overlay->dst_rect.y = 16;
+    overlay->visible = true;
+    overlay->vanishes = true;
+    overlay->delay = 100;
+    return overlay;
+}
+
+OverlayCollection *create_overlays(uint32_t width, uint32_t height, SDL_Renderer *renderer, Canvas *canvas, char **filenames, uint32_t filenames_length, uint16_t current_filename_index)
 {
     OverlayCollection *overlay_collection = malloc(sizeof(OverlayCollection));
-    overlay_collection->length = 2;
+    overlay_collection->length = 3;
     overlay_collection->data = malloc(sizeof(Overlay*) * overlay_collection->length);
-    overlay_collection->data[0] = create_filename_overlay(width, height, renderer, canvas);
+    overlay_collection->data[0] = create_title_overlay(width, height, renderer, canvas);
     overlay_collection->data[1] = create_sauce_overlay(width, height, renderer, canvas);
+    overlay_collection->data[2] = create_filename_list_overlay(height, renderer, canvas, filenames, filenames_length, current_filename_index);
     return overlay_collection;
 }
 
@@ -332,17 +355,20 @@ void free_overlays(OverlayCollection *overlays)
 {
     for(size_t i = 0; i < overlays->length; i += 1)
     {
-        SDL_DestroyTexture(overlays->data[i]->texture);
-        free(overlays->data[i]);
+        if(overlays->data[i] != NULL)
+        {
+            SDL_DestroyTexture(overlays->data[i]->texture);
+            free(overlays->data[i]);
+        }
     }
     free(overlays->data);
     free(overlays);
 }
 
-EventLoopReturnType event_loop(uint32_t width, uint32_t height, SDL_Renderer *renderer, Canvas *canvas)
+EventLoopReturnType event_loop(uint32_t width, uint32_t height, SDL_Renderer *renderer, Canvas *canvas, char **filenames, uint32_t filenames_length, uint16_t *current_filename_index)
 {
     TextureCollection *textures = create_textures(renderer, canvas);
-    OverlayCollection *overlays = create_overlays(width, height, renderer, canvas);
+    OverlayCollection *overlays = create_overlays(width, height, renderer, canvas, filenames, filenames_length, *current_filename_index);
     SDL_Joystick *joystick = SDL_JoystickOpen(0);
     SDL_Event event;
     EventLoopReturnType event_return;
@@ -382,8 +408,11 @@ EventLoopReturnType event_loop(uint32_t width, uint32_t height, SDL_Renderer *re
             free_textures(textures);
             return event_return;
             break;
-            case EVENT_LOOP_FILENAME:
+            case EVENT_LOOP_TITLE:
             overlays->data[0]->visible = true;
+            break;
+            case EVENT_LOOP_FILE_LIST:
+            overlays->data[2]->visible = true;
             break;
             case EVENT_LOOP_SAUCE:
             overlays->data[1]->visible = !overlays->data[1]->visible;
@@ -394,15 +423,18 @@ EventLoopReturnType event_loop(uint32_t width, uint32_t height, SDL_Renderer *re
         }
         for(size_t i = 0; i < overlays->length; i += 1)
         {
-            if(overlays->data[i]->visible)
+            if(overlays->data[i] != NULL)
             {
-                if(overlays->data[i]->start == -1)
+                if(overlays->data[i]->visible)
                 {
-                    draw_textures(width, height, renderer, textures, overlays, &x_pos, &y_pos);
-                }
-                else if(overlays->data[i]->vanishes && (((clock() - overlays->data[i]->start) * 1000) / CLOCKS_PER_SEC > overlays->data[i]->delay))
-                {
-                    draw_textures(width, height, renderer, textures, overlays, &x_pos, &y_pos);
+                    if(overlays->data[i]->start == -1)
+                    {
+                        draw_textures(width, height, renderer, textures, overlays, &x_pos, &y_pos);
+                    }
+                    else if(overlays->data[i]->vanishes && (((clock() - overlays->data[i]->start) * 1000) / CLOCKS_PER_SEC > overlays->data[i]->delay))
+                    {
+                        draw_textures(width, height, renderer, textures, overlays, &x_pos, &y_pos);
+                    }
                 }
             }
         }
