@@ -39,11 +39,11 @@ void free_textures(TextureCollection *textures);
 
 void debug_canvas(Canvas *canvas);
 
-SDL_Texture* create_title_texture(SDL_Renderer *renderer, uint8_t *string, Sauce *sauce);
+SDL_Texture* create_title_texture(SDL_Renderer *renderer, uint8_t *string, Sauce *sauce, Palette *palette, Font *font);
 
-SDL_Texture* create_sauce_texture(SDL_Renderer *renderer, Sauce *sauce);
+SDL_Texture* create_sauce_texture(SDL_Renderer *renderer, Sauce *sauce, Palette *palette, Font *font);
 
-SDL_Texture* create_filename_list_texture(uint32_t height, SDL_Renderer *renderer, char **filenames, uint32_t filenames_length, uint16_t current_filename_index);
+SDL_Texture* create_filename_list_texture(uint32_t height, SDL_Renderer *renderer, char **filenames, uint32_t filenames_length, uint16_t current_filename_index, Palette *palette, Font *font);
 
 Canvas* screen_to_canvas(Screen *screen);
 

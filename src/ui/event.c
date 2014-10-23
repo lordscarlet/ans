@@ -301,9 +301,9 @@ Overlay *create_overlay(SDL_Texture *texture)
     return overlay;
 }
 
-Overlay *create_title_overlay(uint32_t width, uint32_t height, SDL_Renderer *renderer, Canvas *canvas)
+Overlay *create_title_overlay(uint32_t width, uint32_t height, SDL_Renderer *renderer, Canvas *canvas, Palette *palette, Font *font)
 {
-    SDL_Texture *texture = create_title_texture(renderer, canvas->file->name, canvas->file->sauce);
+    SDL_Texture *texture = create_title_texture(renderer, canvas->file->name, canvas->file->sauce, palette, font);
     Overlay *overlay;
     if(texture == NULL)
     {
@@ -318,9 +318,9 @@ Overlay *create_title_overlay(uint32_t width, uint32_t height, SDL_Renderer *ren
     return overlay;
 }
 
-Overlay *create_sauce_overlay(uint32_t width, uint32_t height, SDL_Renderer *renderer, Canvas *canvas)
+Overlay *create_sauce_overlay(uint32_t width, uint32_t height, SDL_Renderer *renderer, Canvas *canvas, Palette *palette, Font *font)
 {
-    SDL_Texture *texture = create_sauce_texture(renderer, canvas->file->sauce);
+    SDL_Texture *texture = create_sauce_texture(renderer, canvas->file->sauce, palette, font);
     Overlay *overlay = create_overlay(texture);
     overlay->dst_rect.x = width - overlay->width - 16;
     overlay->dst_rect.y = 16;
@@ -328,9 +328,9 @@ Overlay *create_sauce_overlay(uint32_t width, uint32_t height, SDL_Renderer *ren
     return overlay;
 }
 
-Overlay *create_filename_list_overlay(uint32_t height, SDL_Renderer *renderer, Canvas *canvas, char **filenames, uint32_t filenames_length, uint16_t current_filename_index)
+Overlay *create_filename_list_overlay(uint32_t height, SDL_Renderer *renderer, Canvas *canvas, char **filenames, uint32_t filenames_length, uint16_t current_filename_index, Palette *palette, Font *font)
 {
-    SDL_Texture *texture = create_filename_list_texture(height, renderer, filenames, filenames_length, current_filename_index);
+    SDL_Texture *texture = create_filename_list_texture(height, renderer, filenames, filenames_length, current_filename_index, palette, font);
     Overlay *overlay = create_overlay(texture);
     overlay->dst_rect.x = 16;
     overlay->dst_rect.y = 16;
@@ -342,12 +342,16 @@ Overlay *create_filename_list_overlay(uint32_t height, SDL_Renderer *renderer, C
 
 OverlayCollection *create_overlays(uint32_t width, uint32_t height, SDL_Renderer *renderer, Canvas *canvas, char **filenames, uint32_t filenames_length, uint16_t current_filename_index)
 {
+    Palette *palette = get_preset_palette(ANSI_PALETTE);
+    Font *font = get_preset_font(CP437_8x16);
     OverlayCollection *overlay_collection = malloc(sizeof(OverlayCollection));
     overlay_collection->length = 3;
     overlay_collection->data = malloc(sizeof(Overlay*) * overlay_collection->length);
-    overlay_collection->data[0] = create_title_overlay(width, height, renderer, canvas);
-    overlay_collection->data[1] = create_sauce_overlay(width, height, renderer, canvas);
-    overlay_collection->data[2] = create_filename_list_overlay(height, renderer, canvas, filenames, filenames_length, current_filename_index);
+    overlay_collection->data[0] = create_title_overlay(width, height, renderer, canvas, palette, font);
+    overlay_collection->data[1] = create_sauce_overlay(width, height, renderer, canvas, palette, font);
+    overlay_collection->data[2] = create_filename_list_overlay(height, renderer, canvas, filenames, filenames_length, current_filename_index, palette, font);
+    free_palette(palette);
+    free_font(font);
     return overlay_collection;
 }
 

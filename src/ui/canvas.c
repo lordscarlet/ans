@@ -198,12 +198,10 @@ void draw_number(Canvas *canvas, int64_t number, uint8_t foreground, uint8_t bac
     }
 }
 
-SDL_Texture* create_title_texture(SDL_Renderer *renderer, uint8_t *string, Sauce *sauce)
+SDL_Texture* create_title_texture(SDL_Renderer *renderer, uint8_t *string, Sauce *sauce, Palette *palette, Font *font)
 {
     SDL_Texture *texture;
     size_t  string_length;
-    Palette *palette = get_preset_palette(ANSI_PALETTE);
-    Font *font = get_preset_font(CP437_8x16);
     Canvas *canvas;
     char *title = get_title(sauce);
     if(title == NULL)
@@ -215,19 +213,15 @@ SDL_Texture* create_title_texture(SDL_Renderer *renderer, uint8_t *string, Sauce
     draw_box(canvas, font, palette, 15, 3);
     draw_text(canvas, title, string_length, 15, 3, 2, 1, palette, font);
     free(title);
-    free_palette(palette);
-    free_font(font);
     texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_RENDERER_ACCELERATED, canvas->width, canvas->height);
     SDL_UpdateTexture(texture, NULL, canvas->data, canvas->width * 3);
     free_canvas(canvas);
     return texture;
 }
 
-SDL_Texture* create_sauce_texture(SDL_Renderer *renderer, Sauce *sauce)
+SDL_Texture* create_sauce_texture(SDL_Renderer *renderer, Sauce *sauce, Palette *palette, Font *font)
 {
     SDL_Texture *texture;
-    Palette *palette = get_preset_palette(ANSI_PALETTE);
-    Font *font = get_preset_font(CP437_8x16);
     Canvas *canvas;
     if(sauce == NULL)
     {
@@ -305,8 +299,6 @@ SDL_Texture* create_sauce_texture(SDL_Renderer *renderer, Sauce *sauce)
         }
         draw_text(canvas, sauce->t_info_s, 22, 0, 7, 12, 15, palette, font);
     }
-    free_palette(palette);
-    free_font(font);
     texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_RENDERER_ACCELERATED, canvas->width, canvas->height);
     SDL_UpdateTexture(texture, NULL, canvas->data, canvas->width * 3);
     free_canvas(canvas);
@@ -327,11 +319,9 @@ void draw_truncated_text(Canvas *canvas, char *text, uint16_t x, uint16_t y, siz
     }
 }
 
-SDL_Texture* create_filename_list_texture(uint32_t height, SDL_Renderer *renderer, char **filenames, uint32_t filenames_length, uint16_t current_filename_index)
+SDL_Texture* create_filename_list_texture(uint32_t height, SDL_Renderer *renderer, char **filenames, uint32_t filenames_length, uint16_t current_filename_index, Palette *palette, Font *font)
 {
     SDL_Texture *texture;
-    Palette *palette = get_preset_palette(ANSI_PALETTE);
-    Font *font = get_preset_font(CP437_8x16);
     size_t box_width = 44;
     size_t box_height = (height / font->height) - 2;
     size_t list_width = box_width - 4;
@@ -369,8 +359,6 @@ SDL_Texture* create_filename_list_texture(uint32_t height, SDL_Renderer *rendere
             draw_truncated_text(canvas, filenames[i], 2, 1 + y, list_width, foreground, background, palette, font);
         }
     }
-    free_palette(palette);
-    free_font(font);
     texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_RENDERER_ACCELERATED, canvas->width, canvas->height);
     SDL_UpdateTexture(texture, NULL, canvas->data, canvas->width * 3);
     free_canvas(canvas);
