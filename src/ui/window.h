@@ -13,6 +13,13 @@ typedef struct
     bool full_screen;
 } TextmodeDisplay;
 
+typedef struct
+{
+    bool file_list;
+    bool sauce_info;
+    bool title;
+} ViewPrefs;
+
 void display_window(char **filnames, uint32_t filenames_length, bool display_full_screen);
 
 #endif /* end of include guard: WINDOW_H_A2935005 */

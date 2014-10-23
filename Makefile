@@ -40,7 +40,7 @@ screen.o: src/file/formats/screen.c src/file/formats/screen.h src/file/formats/p
 window.o: src/ui/window.c src/ui/window.h src/file/file.h src/ui/canvas.h src/ui/event.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
-event.o: src/ui/event.c src/ui/event.h src/ui/canvas.h
+event.o: src/ui/event.c src/ui/event.h src/ui/canvas.h src/ui/window.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 text.o: src/text/text.c src/text/text.h src/text/utf8.h src/file/file.h src/file/formats/screen.h src/file/formats/palette.h

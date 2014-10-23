@@ -4,6 +4,7 @@
 
 #include "event.h"
 #include "canvas.h"
+#include "window.h"
 
 uint32_t MAX_TEXTURES = 8;
 
@@ -11,6 +12,7 @@ typedef struct {
     SDL_Rect    src_rect, dst_rect;
     uint32_t    width, height;
     bool        visible;
+    bool        force_visibility;
     bool        vanishes;
     size_t      delay;
     int         start;
@@ -103,6 +105,11 @@ void draw_textures(size_t width, size_t height, SDL_Renderer *renderer, TextureC
     {
         if(overlays->data[i] != NULL)
         {
+            if(overlays->data[i]->force_visibility)
+            {
+                SDL_RenderCopy(renderer, overlays->data[i]->texture, &overlays->data[i]->src_rect, &overlays->data[i]->dst_rect);
+            }
+            else
             if(overlays->data[i]->visible)
             {
                 if(overlays->data[i]->vanishes)
@@ -257,7 +264,7 @@ EventLoopReturnType key_event(uint32_t width, uint32_t height, SDL_Renderer *ren
         return EVENT_LOOP_TITLE;
         case SDLK_l:
         return EVENT_LOOP_FILE_LIST;
-        case SDLK_i:
+        case SDLK_s:
         return EVENT_LOOP_SAUCE;
     }
     return EVENT_LOOP_NONE;
@@ -295,6 +302,7 @@ Overlay *create_overlay(SDL_Texture *texture)
     overlay->dst_rect.w = (int) overlay->width;
     overlay->dst_rect.h = (int) overlay->height;
     overlay->visible = false;
+    overlay->force_visibility = false;
     overlay->vanishes = false;
     overlay->delay = 0;
     overlay->start = -1;
@@ -324,7 +332,6 @@ Overlay *create_sauce_overlay(uint32_t width, uint32_t height, SDL_Renderer *ren
     Overlay *overlay = create_overlay(texture);
     overlay->dst_rect.x = width - overlay->width - 16;
     overlay->dst_rect.y = 16;
-    overlay->visible = false;
     return overlay;
 }
 
@@ -334,7 +341,7 @@ Overlay *create_filename_list_overlay(uint32_t height, SDL_Renderer *renderer, C
     Overlay *overlay = create_overlay(texture);
     overlay->dst_rect.x = 16;
     overlay->dst_rect.y = 16;
-    if(filenames_length > 1)
+    if(filenames_length > 0)
     {
         overlay->visible = true;
     }
@@ -347,7 +354,7 @@ Overlay *create_filename_list_overlay(uint32_t height, SDL_Renderer *renderer, C
     return overlay;
 }
 
-OverlayCollection *create_overlays(uint32_t width, uint32_t height, SDL_Renderer *renderer, Canvas *canvas, char **filenames, uint32_t filenames_length, uint16_t current_filename_index)
+OverlayCollection *create_overlays(uint32_t width, uint32_t height, SDL_Renderer *renderer, Canvas *canvas, char **filenames, uint32_t filenames_length, uint16_t current_filename_index, ViewPrefs *view_prefs)
 {
     Palette *palette = get_preset_palette(ANSI_PALETTE);
     Font *font = get_preset_font(CP437_8x16);
@@ -355,8 +362,23 @@ OverlayCollection *create_overlays(uint32_t width, uint32_t height, SDL_Renderer
     overlay_collection->length = 3;
     overlay_collection->data = malloc(sizeof(Overlay*) * overlay_collection->length);
     overlay_collection->data[0] = create_title_overlay(width, height, renderer, canvas, palette, font);
+    if(overlay_collection->data[0] != NULL)
+    {
+        if(view_prefs->title)
+        {
+            overlay_collection->data[0]->force_visibility = true;
+        }
+    }
     overlay_collection->data[1] = create_sauce_overlay(width, height, renderer, canvas, palette, font);
+    if(view_prefs->sauce_info)
+    {
+        overlay_collection->data[1]->visible = true;
+    }
     overlay_collection->data[2] = create_filename_list_overlay(height, renderer, canvas, filenames, filenames_length, current_filename_index, palette, font);
+    if(view_prefs->file_list)
+    {
+        overlay_collection->data[2]->force_visibility = true;
+    }
     free_palette(palette);
     free_font(font);
     return overlay_collection;
@@ -376,10 +398,10 @@ void free_overlays(OverlayCollection *overlays)
     free(overlays);
 }
 
-EventLoopReturnType event_loop(uint32_t width, uint32_t height, SDL_Renderer *renderer, Canvas *canvas, char **filenames, uint32_t filenames_length, uint16_t *current_filename_index)
+EventLoopReturnType event_loop(uint32_t width, uint32_t height, SDL_Renderer *renderer, Canvas *canvas, char **filenames, uint32_t filenames_length, uint16_t *current_filename_index, ViewPrefs *view_prefs)
 {
     TextureCollection *textures = create_textures(renderer, canvas);
-    OverlayCollection *overlays = create_overlays(width, height, renderer, canvas, filenames, filenames_length, *current_filename_index);
+    OverlayCollection *overlays = create_overlays(width, height, renderer, canvas, filenames, filenames_length, *current_filename_index, view_prefs);
     SDL_Joystick *joystick = SDL_JoystickOpen(0);
     SDL_Event event;
     EventLoopReturnType event_return;
@@ -422,14 +444,25 @@ EventLoopReturnType event_loop(uint32_t width, uint32_t height, SDL_Renderer *re
             case EVENT_LOOP_TITLE:
             if(overlays->data[0] != NULL)
             {
-                overlays->data[0]->visible = true;
+                view_prefs->title = !overlays->data[0]->visible;
+                overlays->data[0]->start = -2;
+                overlays->data[0]->force_visibility = view_prefs->title;
+                overlays->data[0]->visible = view_prefs->title;
+                draw_textures(width, height, renderer, textures, overlays, &x_pos, &y_pos);
             }
             break;
             case EVENT_LOOP_FILE_LIST:
-            overlays->data[2]->visible = true;
+            view_prefs->file_list = !overlays->data[2]->visible;
+            overlays->data[2]->start = -2;
+            overlays->data[2]->force_visibility = view_prefs->file_list;
+            overlays->data[2]->visible = view_prefs->file_list;
+            draw_textures(width, height, renderer, textures, overlays, &x_pos, &y_pos);
             break;
             case EVENT_LOOP_SAUCE:
-            overlays->data[1]->visible = !overlays->data[1]->visible;
+            view_prefs->sauce_info = !overlays->data[1]->visible;
+            overlays->data[1]->start = -2;
+            overlays->data[1]->force_visibility = view_prefs->sauce_info;
+            overlays->data[1]->visible = view_prefs->sauce_info;
             draw_textures(width, height, renderer, textures, overlays, &x_pos, &y_pos);
             break;
             default:
@@ -445,7 +478,7 @@ EventLoopReturnType event_loop(uint32_t width, uint32_t height, SDL_Renderer *re
                     {
                         draw_textures(width, height, renderer, textures, overlays, &x_pos, &y_pos);
                     }
-                    else if(overlays->data[i]->vanishes && (((clock() - overlays->data[i]->start) * 1000) / CLOCKS_PER_SEC > overlays->data[i]->delay))
+                    else if(overlays->data[i]->start != -2 && overlays->data[i]->vanishes && (((clock() - overlays->data[i]->start) * 1000) / CLOCKS_PER_SEC > overlays->data[i]->delay))
                     {
                         draw_textures(width, height, renderer, textures, overlays, &x_pos, &y_pos);
                     }
