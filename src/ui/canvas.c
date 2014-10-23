@@ -208,15 +208,15 @@ SDL_Texture* create_title_texture(SDL_Renderer *renderer, uint8_t *string, Sauce
     {
         string_length = strlen((char*) string);
         canvas = create_canvas((string_length + 4) * font->width, font->height * 3);
-        draw_box(canvas, font, palette, 15, 3);
-        draw_text(canvas, (char*) string, string_length, 15, 3, 2, 1, palette, font);
+        draw_box(canvas, font, palette, 0, 7);
+        draw_text(canvas, (char*) string, string_length, 0, 7, 2, 1, palette, font);
     }
     else
     {
         string_length = strlen(title);
         canvas = create_canvas((string_length + 4) * font->width, font->height * 3);
-        draw_box(canvas, font, palette, 15, 3);
-        draw_text(canvas, title, string_length, 15, 3, 2, 1, palette, font);
+        draw_box(canvas, font, palette, 0, 7);
+        draw_text(canvas, title, string_length, 0, 7, 2, 1, palette, font);
         free(title);
     }
     texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_RENDERER_ACCELERATED, canvas->width, canvas->height);
