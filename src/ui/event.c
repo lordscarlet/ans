@@ -413,7 +413,10 @@ EventLoopReturnType event_loop(uint32_t width, uint32_t height, SDL_Renderer *re
             return event_return;
             break;
             case EVENT_LOOP_TITLE:
-            overlays->data[0]->visible = true;
+            if(overlays->data[0] != NULL)
+            {
+                overlays->data[0]->visible = true;
+            }
             break;
             case EVENT_LOOP_FILE_LIST:
             overlays->data[2]->visible = true;
