@@ -15,9 +15,7 @@ typedef struct
 
 typedef struct
 {
-    bool file_list;
-    bool sauce_info;
-    bool title;
+    bool file_list, sauce_info, title, info;
 } ViewPrefs;
 
 void display_window(char **filnames, uint32_t filenames_length, bool display_full_screen);

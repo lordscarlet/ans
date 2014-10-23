@@ -45,6 +45,8 @@ SDL_Texture* create_sauce_texture(SDL_Renderer *renderer, Sauce *sauce, Palette 
 
 SDL_Texture* create_filename_list_texture(uint32_t height, SDL_Renderer *renderer, char **filenames, uint32_t filenames_length, uint16_t current_filename_index, Palette *palette, Font *font);
 
+SDL_Texture* create_info_texture(SDL_Renderer *renderer, Canvas *text_art_canvas, Palette *palette, Font *font);
+
 Canvas* screen_to_canvas(Screen *screen);
 
 #endif /* end of include guard: CANVAS_H_FC7B83B1 */

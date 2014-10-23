@@ -206,13 +206,19 @@ SDL_Texture* create_title_texture(SDL_Renderer *renderer, uint8_t *string, Sauce
     char *title = get_title(sauce);
     if(title == NULL)
     {
-        return NULL;
+        string_length = strlen((char*) string);
+        canvas = create_canvas((string_length + 4) * font->width, font->height * 3);
+        draw_box(canvas, font, palette, 15, 3);
+        draw_text(canvas, (char*) string, string_length, 15, 3, 2, 1, palette, font);
     }
-    string_length = strlen((char*) title);
-    canvas = create_canvas((string_length + 4) * font->width, font->height * 3);
-    draw_box(canvas, font, palette, 15, 3);
-    draw_text(canvas, title, string_length, 15, 3, 2, 1, palette, font);
-    free(title);
+    else
+    {
+        string_length = strlen(title);
+        canvas = create_canvas((string_length + 4) * font->width, font->height * 3);
+        draw_box(canvas, font, palette, 15, 3);
+        draw_text(canvas, title, string_length, 15, 3, 2, 1, palette, font);
+        free(title);
+    }
     texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_RENDERER_ACCELERATED, canvas->width, canvas->height);
     SDL_UpdateTexture(texture, NULL, canvas->data, canvas->width * 3);
     free_canvas(canvas);
@@ -359,6 +365,116 @@ SDL_Texture* create_filename_list_texture(uint32_t height, SDL_Renderer *rendere
             draw_truncated_text(canvas, filenames[i], 2, 1 + y, list_width, foreground, background, palette, font);
         }
     }
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_RENDERER_ACCELERATED, canvas->width, canvas->height);
+    SDL_UpdateTexture(texture, NULL, canvas->data, canvas->width * 3);
+    free_canvas(canvas);
+    return texture;
+}
+
+SDL_Texture* create_info_texture(SDL_Renderer *renderer, Canvas *text_art_canvas, Palette *palette, Font *font)
+{
+    SDL_Texture *texture;
+    Canvas *canvas;
+    Screen *screen = text_art_canvas->file->screen;
+    char string[80];
+    canvas = create_canvas(font->width * 54, font->height * 12);
+    draw_box(canvas, font, palette, 0, 7);
+    draw_text(canvas, "     Screen Type:", 17, 0, 7, 2, 1, palette, font);
+    draw_text(canvas, "Screen Dimension:", 17, 0, 7, 2, 2, palette, font);
+    draw_text(canvas, "    Palette Type:", 17, 0, 7, 2, 3, palette, font);
+    draw_text(canvas, "  Palette Values:", 17, 0, 7, 2, 4, palette, font);
+    draw_text(canvas, "       Font Type:", 17, 0, 7, 2, 5, palette, font);
+    draw_text(canvas, " Font Dimensions:", 17, 0, 7, 2, 6, palette, font);
+    draw_text(canvas, "  Non-Blink Mode:", 17, 0, 7, 2, 7, palette, font);
+    draw_text(canvas, " 9 Pixel Spacing:", 17, 0, 7, 2, 8, palette, font);
+    draw_text(canvas, "Legacy Asp.Ratio:", 17, 0, 7, 2, 9, palette, font);
+    draw_text(canvas, " Image Dimension:", 17, 0, 7, 2, 10, palette, font);
+    switch(screen->type)
+    {
+        case CHARACTERS:
+        draw_text(canvas, "Characters", 10, 0, 7, 20, 1, palette, font);
+        break;
+        case CHARACTER_AND_ATTRIBUTE_PAIR:
+        draw_text(canvas, "Byte-pair", 9, 0, 7, 20, 1, palette, font);
+        break;
+        case RGB_DATA:
+        draw_text(canvas, "RGB data", 8, 0, 7, 20, 1, palette, font);
+        break;
+        case CHARACTER_AND_ATTRIBUTE_PAIR_WITH_RGB:
+        draw_text(canvas, "Byte-pair with RGB", 18, 0, 7, 20, 1, palette, font);
+        break;
+    }
+    sprintf(string, "%d columns x %d rows", screen->columns, screen->rows);
+    draw_text(canvas, string, strlen(string), 0, 7, 20, 2, palette, font);
+    if(screen->type == CHARACTERS || screen->type == RGB_DATA)
+    {
+        draw_text(canvas, "None", 4, 0, 7, 20, 3, palette, font);
+        draw_text(canvas, "N/A", 3, 0, 7, 20, 4, palette, font);
+    }
+    else
+    {
+        switch(screen->palette->type)
+        {
+            case CUSTOM_PALETTE:
+            draw_text(canvas, "Included in file", 16, 0, 7, 20, 3, palette, font);
+            break;
+            case BINARY_PALETTE:
+            draw_text(canvas, "Binary-ordered palette", 22, 0, 7, 20, 3, palette, font);
+            break;
+            case ANSI_PALETTE:
+            draw_text(canvas, "ANSI-ordered palette", 20, 0, 7, 20, 3, palette, font);
+            break;
+            case XTERM256_PALETTE:
+            draw_text(canvas, "XTerm256 palette", 60, 0, 7, 20, 3, palette, font);
+            break;
+            default:
+            break;
+        }
+        for(size_t i = 0; i < 16; i += 1)
+        {
+            for(size_t j = 0; j < 2; j += 1)
+            {
+                draw_glyph(canvas, 219, i, 0, 20 + i * 2 + j, 4, screen->palette, font);
+            }
+        }
+    }
+    switch(screen->font->type)
+    {
+        case CUSTOM_PALETTE:
+        draw_text(canvas, "Included in file", 16, 0, 7, 20, 5, palette, font);
+        break;
+        default:
+        draw_text(canvas, screen->font->name, strlen(screen->font->name), 0, 7, 20, 5, palette, font);
+        break;
+    }
+    sprintf(string, "%d x %d pixels", screen->font->width, screen->font->height);
+    draw_text(canvas, string, strlen(string), 0, 7, 20, 6, palette, font);
+    if(screen->non_blink)
+    {
+        draw_text(canvas, "On", 2, 0, 7, 20, 7, palette, font);
+    }
+    else
+    {
+        draw_text(canvas, "Off", 3, 0, 7, 20, 7, palette, font);
+    }
+    if(screen->letter_spacing)
+    {
+        draw_text(canvas, "On", 2, 0, 7, 20, 8, palette, font);
+    }
+    else
+    {
+        draw_text(canvas, "Off", 3, 0, 7, 20, 8, palette, font);
+    }
+    if(screen->legacy_aspect_ratio)
+    {
+        draw_text(canvas, "On", 2, 0, 7, 20, 9, palette, font);
+    }
+    else
+    {
+        draw_text(canvas, "Off", 3, 0, 7, 20, 9, palette, font);
+    }
+    sprintf(string, "%d x %d pixels", text_art_canvas->width, text_art_canvas->height);
+    draw_text(canvas, string, strlen(string), 0, 7, 20, 10, palette, font);
     texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_RENDERER_ACCELERATED, canvas->width, canvas->height);
     SDL_UpdateTexture(texture, NULL, canvas->data, canvas->width * 3);
     free_canvas(canvas);

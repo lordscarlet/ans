@@ -13,6 +13,7 @@ typedef enum {
     EVENT_LOOP_QUIT,
     EVENT_LOOP_TITLE,
     EVENT_LOOP_FILE_LIST,
+    EVENT_LOOP_INFO,
     EVENT_LOOP_SAUCE
 } EventLoopReturnType;
 

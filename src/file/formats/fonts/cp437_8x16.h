@@ -352,7 +352,7 @@ uint8_t cp437_8x16_height = 16;
 
 uint16_t cp437_8x16_length = 256;
 
-char *cp437_8x16_name = "IBM / Microsoft DOS Code Page 437";
+char *cp437_8x16_name = "MS-DOS Code Page 437";
 
 #endif /* end of include guard: CP437_8X16_H_ACF46D78 */
 

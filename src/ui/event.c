@@ -12,10 +12,6 @@ typedef struct {
     SDL_Rect    src_rect, dst_rect;
     uint32_t    width, height;
     bool        visible;
-    bool        force_visibility;
-    bool        vanishes;
-    size_t      delay;
-    int         start;
     SDL_Texture *texture;
 } Overlay;
 
@@ -105,29 +101,9 @@ void draw_textures(size_t width, size_t height, SDL_Renderer *renderer, TextureC
     {
         if(overlays->data[i] != NULL)
         {
-            if(overlays->data[i]->force_visibility)
-            {
-                SDL_RenderCopy(renderer, overlays->data[i]->texture, &overlays->data[i]->src_rect, &overlays->data[i]->dst_rect);
-            }
-            else
             if(overlays->data[i]->visible)
             {
-                if(overlays->data[i]->vanishes)
-                {
-                    if(overlays->data[i]->start == -1)
-                    {
-                        overlays->data[i]->start = clock();
-                    }
-                    else if(((clock() - overlays->data[i]->start) * 1000) / CLOCKS_PER_SEC > overlays->data[i]->delay)
-                    {
-                        overlays->data[i]->start = -1;
-                        overlays->data[i]->visible = false; 
-                    }
-                }
-                if(overlays->data[i]->visible)
-                {
-                    SDL_RenderCopy(renderer, overlays->data[i]->texture, &overlays->data[i]->src_rect, &overlays->data[i]->dst_rect);
-                }
+                SDL_RenderCopy(renderer, overlays->data[i]->texture, &overlays->data[i]->src_rect, &overlays->data[i]->dst_rect);
             }
         }
     }
@@ -254,18 +230,20 @@ EventLoopReturnType key_event(uint32_t width, uint32_t height, SDL_Renderer *ren
         }
         draw_textures(width, height, renderer, textures, overlays, x_pos, y_pos);
         break;
+        case SDLK_i:
+        return EVENT_LOOP_INFO;
         case SDLK_j:
         return EVENT_LOOP_NEXT;
         case SDLK_k:
         return EVENT_LOOP_PREV;
         case SDLK_q: case SDLK_ESCAPE:
         return EVENT_LOOP_QUIT;
+        case SDLK_s:
+        return EVENT_LOOP_SAUCE;
         case SDLK_t:
         return EVENT_LOOP_TITLE;
         case SDLK_l:
         return EVENT_LOOP_FILE_LIST;
-        case SDLK_s:
-        return EVENT_LOOP_SAUCE;
     }
     return EVENT_LOOP_NONE;
 }
@@ -302,10 +280,6 @@ Overlay *create_overlay(SDL_Texture *texture)
     overlay->dst_rect.w = (int) overlay->width;
     overlay->dst_rect.h = (int) overlay->height;
     overlay->visible = false;
-    overlay->force_visibility = false;
-    overlay->vanishes = false;
-    overlay->delay = 0;
-    overlay->start = -1;
     return overlay;
 }
 
@@ -320,9 +294,6 @@ Overlay *create_title_overlay(uint32_t width, uint32_t height, SDL_Renderer *ren
     overlay = create_overlay(texture);
     overlay->dst_rect.x = (width - overlay->width) / 2;
     overlay->dst_rect.y = height - 64;
-    overlay->visible = true;
-    overlay->vanishes = true;
-    overlay->delay = 150;
     return overlay;
 }
 
@@ -341,16 +312,15 @@ Overlay *create_filename_list_overlay(uint32_t height, SDL_Renderer *renderer, C
     Overlay *overlay = create_overlay(texture);
     overlay->dst_rect.x = 16;
     overlay->dst_rect.y = 16;
-    if(filenames_length > 0)
-    {
-        overlay->visible = true;
-    }
-    else
-    {
-        overlay->visible = false;
-    }
-    overlay->vanishes = true;
-    overlay->delay = 100;
+    return overlay;
+}
+
+Overlay *create_info_overlay(uint32_t width, uint32_t height, SDL_Renderer *renderer, Canvas *canvas, Palette *palette, Font *font)
+{
+    SDL_Texture *texture = create_info_texture(renderer, canvas, palette, font);
+    Overlay *overlay = create_overlay(texture);
+    overlay->dst_rect.x = width - overlay->width - 16;
+    overlay->dst_rect.y = height - overlay->height - 16;
     return overlay;
 }
 
@@ -359,14 +329,14 @@ OverlayCollection *create_overlays(uint32_t width, uint32_t height, SDL_Renderer
     Palette *palette = get_preset_palette(ANSI_PALETTE);
     Font *font = get_preset_font(CP437_8x16);
     OverlayCollection *overlay_collection = malloc(sizeof(OverlayCollection));
-    overlay_collection->length = 3;
+    overlay_collection->length = 4;
     overlay_collection->data = malloc(sizeof(Overlay*) * overlay_collection->length);
     overlay_collection->data[0] = create_title_overlay(width, height, renderer, canvas, palette, font);
     if(overlay_collection->data[0] != NULL)
     {
         if(view_prefs->title)
         {
-            overlay_collection->data[0]->force_visibility = true;
+            overlay_collection->data[0]->visible = true;
         }
     }
     overlay_collection->data[1] = create_sauce_overlay(width, height, renderer, canvas, palette, font);
@@ -377,7 +347,12 @@ OverlayCollection *create_overlays(uint32_t width, uint32_t height, SDL_Renderer
     overlay_collection->data[2] = create_filename_list_overlay(height, renderer, canvas, filenames, filenames_length, current_filename_index, palette, font);
     if(view_prefs->file_list)
     {
-        overlay_collection->data[2]->force_visibility = true;
+        overlay_collection->data[2]->visible = true;
+    }
+    overlay_collection->data[3] = create_info_overlay(width, height, renderer, canvas, palette, font);
+    if(view_prefs->info)
+    {
+        overlay_collection->data[3]->visible = true;
     }
     free_palette(palette);
     free_font(font);
@@ -445,45 +420,27 @@ EventLoopReturnType event_loop(uint32_t width, uint32_t height, SDL_Renderer *re
             if(overlays->data[0] != NULL)
             {
                 view_prefs->title = !overlays->data[0]->visible;
-                overlays->data[0]->start = -2;
-                overlays->data[0]->force_visibility = view_prefs->title;
                 overlays->data[0]->visible = view_prefs->title;
                 draw_textures(width, height, renderer, textures, overlays, &x_pos, &y_pos);
             }
             break;
             case EVENT_LOOP_FILE_LIST:
             view_prefs->file_list = !overlays->data[2]->visible;
-            overlays->data[2]->start = -2;
-            overlays->data[2]->force_visibility = view_prefs->file_list;
             overlays->data[2]->visible = view_prefs->file_list;
             draw_textures(width, height, renderer, textures, overlays, &x_pos, &y_pos);
             break;
             case EVENT_LOOP_SAUCE:
             view_prefs->sauce_info = !overlays->data[1]->visible;
-            overlays->data[1]->start = -2;
-            overlays->data[1]->force_visibility = view_prefs->sauce_info;
             overlays->data[1]->visible = view_prefs->sauce_info;
+            draw_textures(width, height, renderer, textures, overlays, &x_pos, &y_pos);
+            break;
+            case EVENT_LOOP_INFO:
+            view_prefs->info = !overlays->data[3]->visible;
+            overlays->data[3]->visible = view_prefs->info;
             draw_textures(width, height, renderer, textures, overlays, &x_pos, &y_pos);
             break;
             default:
             break;
-        }
-        for(size_t i = 0; i < overlays->length; i += 1)
-        {
-            if(overlays->data[i] != NULL)
-            {
-                if(overlays->data[i]->visible)
-                {
-                    if(overlays->data[i]->start == -1)
-                    {
-                        draw_textures(width, height, renderer, textures, overlays, &x_pos, &y_pos);
-                    }
-                    else if(overlays->data[i]->start != -2 && overlays->data[i]->vanishes && (((clock() - overlays->data[i]->start) * 1000) / CLOCKS_PER_SEC > overlays->data[i]->delay))
-                    {
-                        draw_textures(width, height, renderer, textures, overlays, &x_pos, &y_pos);
-                    }
-                }
-            }
         }
     }
 }
