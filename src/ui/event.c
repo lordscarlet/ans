@@ -334,7 +334,14 @@ Overlay *create_filename_list_overlay(uint32_t height, SDL_Renderer *renderer, C
     Overlay *overlay = create_overlay(texture);
     overlay->dst_rect.x = 16;
     overlay->dst_rect.y = 16;
-    overlay->visible = true;
+    if(filenames_length > 1)
+    {
+        overlay->visible = true;
+    }
+    else
+    {
+        overlay->visible = false;
+    }
     overlay->vanishes = true;
     overlay->delay = 100;
     return overlay;
