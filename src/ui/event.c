@@ -230,6 +230,8 @@ EventLoopReturnType key_event(uint32_t width, uint32_t height, SDL_Renderer *ren
         }
         draw_textures(width, height, renderer, textures, overlays, x_pos, y_pos);
         break;
+        case SDLK_g:
+        return EVENT_LOOP_GLYPH;
         case SDLK_i:
         return EVENT_LOOP_INFO;
         case SDLK_j:
@@ -324,12 +326,21 @@ Overlay *create_info_overlay(uint32_t width, uint32_t height, SDL_Renderer *rend
     return overlay;
 }
 
+Overlay *create_glyph_overlay(uint32_t width, uint32_t height, SDL_Renderer *renderer, Canvas *canvas, Palette *palette)
+{
+    SDL_Texture *texture = create_glyph_texture(renderer, canvas, palette);
+    Overlay *overlay = create_overlay(texture);
+    overlay->dst_rect.x = width - overlay->width - 16;
+    overlay->dst_rect.y = (height - overlay->height) / 2;
+    return overlay;
+}
+
 OverlayCollection *create_overlays(uint32_t width, uint32_t height, SDL_Renderer *renderer, Canvas *canvas, char **filenames, uint32_t filenames_length, uint16_t current_filename_index, ViewPrefs *view_prefs)
 {
     Palette *palette = get_preset_palette(ANSI_PALETTE);
     Font *font = get_preset_font(CP437_8x16);
     OverlayCollection *overlay_collection = malloc(sizeof(OverlayCollection));
-    overlay_collection->length = 4;
+    overlay_collection->length = 5;
     overlay_collection->data = malloc(sizeof(Overlay*) * overlay_collection->length);
     overlay_collection->data[0] = create_title_overlay(width, height, renderer, canvas, palette, font);
     if(overlay_collection->data[0] != NULL)
@@ -353,6 +364,11 @@ OverlayCollection *create_overlays(uint32_t width, uint32_t height, SDL_Renderer
     if(view_prefs->info)
     {
         overlay_collection->data[3]->visible = true;
+    }
+    overlay_collection->data[4] = create_glyph_overlay(width, height, renderer, canvas, palette);
+    if(view_prefs->glyph)
+    {
+        overlay_collection->data[4]->visible = true;
     }
     free_palette(palette);
     free_font(font);
@@ -437,6 +453,11 @@ EventLoopReturnType event_loop(uint32_t width, uint32_t height, SDL_Renderer *re
             case EVENT_LOOP_INFO:
             view_prefs->info = !overlays->data[3]->visible;
             overlays->data[3]->visible = view_prefs->info;
+            draw_textures(width, height, renderer, textures, overlays, &x_pos, &y_pos);
+            break;
+            case EVENT_LOOP_GLYPH:
+            view_prefs->glyph = !overlays->data[4]->visible;
+            overlays->data[4]->visible = view_prefs->glyph;
             draw_textures(width, height, renderer, textures, overlays, &x_pos, &y_pos);
             break;
             default:

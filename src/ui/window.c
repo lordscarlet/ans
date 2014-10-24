@@ -66,6 +66,7 @@ void display_window(char **filenames, uint32_t filenames_length, bool display_fu
     view_prefs.sauce_info = false;
     view_prefs.title = false;
     view_prefs.info = false;
+    view_prefs.glyph = false;
     if(display != NULL)
     {
         while(!quit) {

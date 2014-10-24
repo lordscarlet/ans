@@ -481,6 +481,26 @@ SDL_Texture* create_info_texture(SDL_Renderer *renderer, Canvas *text_art_canvas
     return texture;
 }
 
+SDL_Texture* create_glyph_texture(SDL_Renderer *renderer, Canvas *text_art_canvas, Palette *palette)
+{
+    SDL_Texture *texture;
+    Canvas *canvas;
+    Screen *screen = text_art_canvas->file->screen;
+    canvas = create_canvas(screen->font->width * (32 + 2), screen->font->height * (screen->font->length / 32 + 2));
+    draw_box(canvas, screen->font, palette, 7, 7);
+    for(size_t y = 0, i = 0; i < screen->font->length; y += 1)
+    {
+        for(size_t x = 0; x < 32; x += 1, i += 1)
+        {
+                draw_glyph(canvas, i, 0, 7, x + 1, y + 1, palette, screen->font);
+        }
+    }
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_RENDERER_ACCELERATED, canvas->width, canvas->height);
+    SDL_UpdateTexture(texture, NULL, canvas->data, canvas->width * 3);
+    free_canvas(canvas);
+    return texture;
+}
+
 Canvas* screen_to_canvas(Screen *screen)
 {
     Canvas  *canvas = create_canvas(screen->columns * screen->font->width, screen->rows * screen->font->height);

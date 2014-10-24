@@ -47,6 +47,8 @@ SDL_Texture* create_filename_list_texture(uint32_t height, SDL_Renderer *rendere
 
 SDL_Texture* create_info_texture(SDL_Renderer *renderer, Canvas *text_art_canvas, Palette *palette, Font *font);
 
+SDL_Texture* create_glyph_texture(SDL_Renderer *renderer, Canvas *text_art_canvas, Palette *palette);
+
 Canvas* screen_to_canvas(Screen *screen);
 
 #endif /* end of include guard: CANVAS_H_FC7B83B1 */
