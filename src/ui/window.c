@@ -58,6 +58,7 @@ void display_window(char **filenames, uint32_t filenames_length, bool display_fu
     Canvas *canvas;
     EventLoopReturnType event = EVENT_LOOP_NEXT;
     bool quit = false;
+    bool already_displayed_file = false;
     int64_t i = 0;
     uint16_t current_file_index;
     TextmodeDisplay *display = init_window(display_full_screen);
@@ -91,6 +92,7 @@ void display_window(char **filenames, uint32_t filenames_length, bool display_fu
                 current_file_index = (uint16_t) i;
                 event = event_loop(display->width, display->height, display->renderer, canvas, filenames, filenames_length, &current_file_index, &view_prefs);
                 free_canvas(canvas);
+                already_displayed_file = true;
             }
             switch(event)
             {
@@ -103,7 +105,14 @@ void display_window(char **filenames, uint32_t filenames_length, bool display_fu
                 i += 1;
                 if(i == filenames_length)
                 {
-                    quit = true;
+                    if(already_displayed_file)
+                    {
+                        i = 0;
+                    }
+                    else
+                    {
+                        quit = true;
+                    }
                 }
                 break;
                 case EVENT_LOOP_PREV:
@@ -111,7 +120,7 @@ void display_window(char **filenames, uint32_t filenames_length, bool display_fu
                 i -= 1;
                 if(i == -1)
                 {
-                    quit = true;
+                    i = filenames_length - 1;
                 }
                 break;
                 default:
