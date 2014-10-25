@@ -61,6 +61,7 @@ void display_window(char **filenames, uint32_t filenames_length, bool display_fu
     bool already_displayed_file = false;
     int64_t i = 0;
     uint16_t current_file_index;
+    int32_t x_pos, y_pos;
     TextmodeDisplay *display = init_window(display_full_screen);
     ViewPrefs view_prefs;
     view_prefs.file_list = false;
@@ -78,6 +79,8 @@ void display_window(char **filenames, uint32_t filenames_length, bool display_fu
                 break;
                 default:
                 file = read_text_art_file(filenames[i]);
+                x_pos = ((int32_t) display->width - (int32_t) canvas->width) / 2;
+                y_pos = 0;
                 break;
             }
             if(file != NULL)
@@ -90,7 +93,7 @@ void display_window(char **filenames, uint32_t filenames_length, bool display_fu
                     SDL_SetWindowSize(display->window, (int) display->width, (int) display->height);
                 }
                 current_file_index = (uint16_t) i;
-                event = event_loop(display->width, display->height, display->renderer, canvas, filenames, filenames_length, &current_file_index, &view_prefs);
+                event = event_loop(display->width, display->height, display->renderer, canvas, filenames, filenames_length, &current_file_index, &view_prefs, &x_pos, &y_pos);
                 free_canvas(canvas);
                 already_displayed_file = true;
             }
