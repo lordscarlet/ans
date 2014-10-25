@@ -99,12 +99,9 @@ void draw_textures(size_t width, size_t height, SDL_Renderer *renderer, TextureC
     }
     for(size_t i = 0; i < overlays->length; i += 1)
     {
-        if(overlays->data[i] != NULL)
+        if(overlays->data[i]->visible)
         {
-            if(overlays->data[i]->visible)
-            {
-                SDL_RenderCopy(renderer, overlays->data[i]->texture, &overlays->data[i]->src_rect, &overlays->data[i]->dst_rect);
-            }
+            SDL_RenderCopy(renderer, overlays->data[i]->texture, &overlays->data[i]->src_rect, &overlays->data[i]->dst_rect);
         }
     }
     SDL_RenderPresent(renderer);
@@ -238,6 +235,8 @@ EventLoopReturnType key_event(uint32_t width, uint32_t height, SDL_Renderer *ren
         return EVENT_LOOP_NEXT;
         case SDLK_k:
         return EVENT_LOOP_PREV;
+        case SDLK_n:
+        return EVENT_LOOP_LETTER_SPACING;
         case SDLK_q: case SDLK_ESCAPE:
         return EVENT_LOOP_QUIT;
         case SDLK_s:
@@ -289,10 +288,6 @@ Overlay *create_title_overlay(uint32_t width, uint32_t height, SDL_Renderer *ren
 {
     SDL_Texture *texture = create_title_texture(renderer, canvas->file->name, canvas->file->sauce, palette, font);
     Overlay *overlay;
-    if(texture == NULL)
-    {
-        return NULL;
-    }
     overlay = create_overlay(texture);
     overlay->dst_rect.x = (width - overlay->width) / 2;
     overlay->dst_rect.y = height - 64;
@@ -343,12 +338,9 @@ OverlayCollection *create_overlays(uint32_t width, uint32_t height, SDL_Renderer
     overlay_collection->length = 5;
     overlay_collection->data = malloc(sizeof(Overlay*) * overlay_collection->length);
     overlay_collection->data[0] = create_title_overlay(width, height, renderer, canvas, palette, font);
-    if(overlay_collection->data[0] != NULL)
+    if(view_prefs->title)
     {
-        if(view_prefs->title)
-        {
-            overlay_collection->data[0]->visible = true;
-        }
+        overlay_collection->data[0]->visible = true;
     }
     overlay_collection->data[1] = create_sauce_overlay(width, height, renderer, canvas, palette, font);
     if(view_prefs->sauce_info)
@@ -375,15 +367,17 @@ OverlayCollection *create_overlays(uint32_t width, uint32_t height, SDL_Renderer
     return overlay_collection;
 }
 
+void free_overlay(Overlay *overlay)
+{
+    SDL_DestroyTexture(overlay);
+    free(overlay);
+}
+
 void free_overlays(OverlayCollection *overlays)
 {
     for(size_t i = 0; i < overlays->length; i += 1)
     {
-        if(overlays->data[i] != NULL)
-        {
-            SDL_DestroyTexture(overlays->data[i]->texture);
-            free(overlays->data[i]);
-        }
+        free_overlay(overlays->data[i]);
     }
     free(overlays->data);
     free(overlays);
@@ -427,6 +421,7 @@ EventLoopReturnType event_loop(uint32_t width, uint32_t height, SDL_Renderer *re
         switch(event_return)
         {
             case EVENT_LOOP_QUIT: case EVENT_LOOP_NEXT: case EVENT_LOOP_PREV:
+            case EVENT_LOOP_LETTER_SPACING:
             SDL_JoystickClose(joystick);
             free_overlays(overlays);
             free_textures(textures);

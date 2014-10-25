@@ -70,7 +70,15 @@ void display_window(char **filenames, uint32_t filenames_length, bool display_fu
     if(display != NULL)
     {
         while(!quit) {
-            file = read_text_art_file(filenames[i]);
+            switch(event)
+            {
+                case EVENT_LOOP_LETTER_SPACING:
+                file->screen->letter_spacing = !file->screen->letter_spacing;
+                break;
+                default:
+                file = read_text_art_file(filenames[i]);
+                break;
+            }
             if(file != NULL)
             {
                 canvas = screen_to_canvas(file->screen);
@@ -87,9 +95,11 @@ void display_window(char **filenames, uint32_t filenames_length, bool display_fu
             switch(event)
             {
                 case EVENT_LOOP_QUIT:
+                free_text_art_file(file);
                 quit = true;
                 break;
                 case EVENT_LOOP_NEXT:
+                free_text_art_file(file);
                 i += 1;
                 if(i == filenames_length)
                 {
@@ -97,6 +107,7 @@ void display_window(char **filenames, uint32_t filenames_length, bool display_fu
                 }
                 break;
                 case EVENT_LOOP_PREV:
+                free_text_art_file(file);
                 i -= 1;
                 if(i == -1)
                 {

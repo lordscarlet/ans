@@ -38,10 +38,6 @@ void free_canvas(Canvas *canvas)
         {
             free(canvas->data);
         }
-        if(canvas->file != NULL)
-        {
-            free_text_art_file(canvas->file);
-        }
         free(canvas);
     }
 }
@@ -184,30 +180,30 @@ void draw_glyph(Canvas *canvas, uint8_t ascii_code, uint8_t foreground, uint8_t 
     }
 }
 
-void draw_box(Canvas *canvas, Font *font, Palette *palette, uint8_t foreground, uint8_t background)
+void draw_box(Canvas *canvas, Font *font, Palette *palette, uint8_t foreground, uint8_t background, bool letter_spacing)
 {
     uint16_t columns = canvas->width / font->width;
     uint16_t rows = canvas->height / font->height;
-    draw_glyph(canvas, 201, foreground, background, 0, 0, palette, font, false);
-    draw_glyph(canvas, 200, foreground, background, 0, rows - 1, palette, font, false);
-    draw_glyph(canvas, 187, foreground, background, columns - 1, 0, palette, font, false);
-    draw_glyph(canvas, 187, foreground, background, columns - 1, 0, palette, font, false);
-    draw_glyph(canvas, 188, foreground, background, columns - 1, rows - 1, palette, font, false);
+    draw_glyph(canvas, 201, foreground, background, 0, 0, palette, font, letter_spacing);
+    draw_glyph(canvas, 200, foreground, background, 0, rows - 1, palette, font, letter_spacing);
+    draw_glyph(canvas, 187, foreground, background, columns - 1, 0, palette, font, letter_spacing);
+    draw_glyph(canvas, 187, foreground, background, columns - 1, 0, palette, font, letter_spacing);
+    draw_glyph(canvas, 188, foreground, background, columns - 1, rows - 1, palette, font, letter_spacing);
     for(uint16_t x = 1; x < columns - 1; x += 1)
     {
-        draw_glyph(canvas, 205, foreground, background, x, 0, palette, font, false);
-        draw_glyph(canvas, 205, foreground, background, x, rows - 1, palette, font, false);
+        draw_glyph(canvas, 205, foreground, background, x, 0, palette, font, letter_spacing);
+        draw_glyph(canvas, 205, foreground, background, x, rows - 1, palette, font, letter_spacing);
     }
     for(uint16_t y = 1; y < rows - 1; y += 1)
     {
-        draw_glyph(canvas, 186, foreground, background, 0, y, palette, font, false);
-        draw_glyph(canvas, 186, foreground, background, columns - 1, y, palette, font, false);
+        draw_glyph(canvas, 186, foreground, background, 0, y, palette, font, letter_spacing);
+        draw_glyph(canvas, 186, foreground, background, columns - 1, y, palette, font, letter_spacing);
     }
     for(uint16_t y = 1; y < rows - 1; y += 1)
     {
         for(uint16_t x = 1; x < columns - 1; x += 1)
         {
-            draw_glyph(canvas, 219, background, 0, x, y, palette, font, false);
+            draw_glyph(canvas, 219, background, 0, x, y, palette, font, letter_spacing);
         }
     }
 }
@@ -240,14 +236,14 @@ SDL_Texture* create_title_texture(SDL_Renderer *renderer, uint8_t *string, Sauce
     {
         string_length = strlen((char*) string);
         canvas = create_canvas((string_length + 4) * font->width, font->height * 3);
-        draw_box(canvas, font, palette, 0, 7);
+        draw_box(canvas, font, palette, 0, 7, false);
         draw_text(canvas, (char*) string, string_length, 0, 7, 2, 1, palette, font);
     }
     else
     {
         string_length = strlen(title);
         canvas = create_canvas((string_length + 4) * font->width, font->height * 3);
-        draw_box(canvas, font, palette, 0, 7);
+        draw_box(canvas, font, palette, 0, 7, false);
         draw_text(canvas, title, string_length, 0, 7, 2, 1, palette, font);
         free(title);
     }
@@ -264,13 +260,13 @@ SDL_Texture* create_sauce_texture(SDL_Renderer *renderer, Sauce *sauce, Palette 
     if(sauce == NULL)
     {
         canvas = create_canvas(font->width * 25, font->height * 3);
-        draw_box(canvas, font, palette, 0, 7);
+        draw_box(canvas, font, palette, 0, 7, false);
         draw_text(canvas, "No Sauce Record Found", 21, 0, 7, 2, 1, palette, font);
     }
     else
     {
         canvas = create_canvas(font->width * 49, font->height * 17);
-        draw_box(canvas, font, palette, 0, 7);
+        draw_box(canvas, font, palette, 0, 7, false);
         draw_text(canvas, "   Title:", 9, 0, 7, 2, 1, palette, font);
         draw_text(canvas, "  Author:", 9, 0, 7, 2, 2, palette, font);
         draw_text(canvas, "   Group:", 9, 0, 7, 2, 3, palette, font);
@@ -374,7 +370,7 @@ SDL_Texture* create_filename_list_texture(uint32_t height, SDL_Renderer *rendere
     }
     Canvas *canvas;
     canvas = create_canvas(font->width * box_width, font->height * box_height);
-    draw_box(canvas, font, palette, foreground, background);
+    draw_box(canvas, font, palette, foreground, background, false);
     if(current_filename_index > list_height / 2)
     {
         if(filenames_length - current_filename_index + list_height / 2 < list_height)
@@ -410,7 +406,7 @@ SDL_Texture* create_info_texture(SDL_Renderer *renderer, Canvas *text_art_canvas
     Screen *screen = text_art_canvas->file->screen;
     char string[80];
     canvas = create_canvas(font->width * 54, font->height * 12);
-    draw_box(canvas, font, palette, 0, 7);
+    draw_box(canvas, font, palette, 0, 7, false);
     draw_text(canvas, "     Screen Type:", 17, 0, 7, 2, 1, palette, font);
     draw_text(canvas, "Screen Dimension:", 17, 0, 7, 2, 2, palette, font);
     draw_text(canvas, "    Palette Type:", 17, 0, 7, 2, 3, palette, font);
@@ -470,7 +466,14 @@ SDL_Texture* create_info_texture(SDL_Renderer *renderer, Canvas *text_art_canvas
         draw_text(canvas, screen->font->name, strlen(screen->font->name), 0, 7, 20, 5, palette, font);
         break;
     }
-    sprintf(string, "%d x %d pixels", screen->font->width, screen->font->height);
+    if(screen->letter_spacing)
+    {
+        sprintf(string, "%d x %d pixels", screen->font->width + 1, screen->font->height);
+    }
+    else
+    {
+        sprintf(string, "%d x %d pixels", screen->font->width, screen->font->height);
+    }
     draw_text(canvas, string, strlen(string), 0, 7, 20, 6, palette, font);
     if(screen->non_blink)
     {
@@ -509,13 +512,20 @@ SDL_Texture* create_glyph_texture(SDL_Renderer *renderer, Canvas *text_art_canva
     SDL_Texture *texture;
     Canvas *canvas;
     Screen *screen = text_art_canvas->file->screen;
-    canvas = create_canvas(screen->font->width * (32 + 2), screen->font->height * (screen->font->length / 32 + 2));
-    draw_box(canvas, screen->font, palette, 7, 7);
+    if(screen->letter_spacing)
+    {
+        canvas = create_canvas((screen->font->width + 1) * (32 + 2), screen->font->height * (screen->font->length / 32 + 2));
+    }
+    else
+    {
+        canvas = create_canvas(screen->font->width * (32 + 2), screen->font->height * (screen->font->length / 32 + 2));
+    }
+    draw_box(canvas, screen->font, palette, 7, 7, screen->letter_spacing);
     for(size_t y = 0, i = 0; i < screen->font->length; y += 1)
     {
         for(size_t x = 0; x < 32; x += 1, i += 1)
         {
-                draw_glyph(canvas, i, 0, 7, x + 1, y + 1, palette, screen->font, false);
+                draw_glyph(canvas, i, 0, 7, x + 1, y + 1, palette, screen->font, screen->letter_spacing);
         }
     }
     texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_RENDERER_ACCELERATED, canvas->width, canvas->height);
