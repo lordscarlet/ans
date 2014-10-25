@@ -348,8 +348,6 @@ uint8_t cp437_8x16[] = {
     0x00, 0x00, 0x00, 0x00
 };
 
-bool cp437_8x16_has_ninth_bit = true;
-
 uint8_t cp437_8x16_width = 8;
 
 uint8_t cp437_8x16_height = 16;

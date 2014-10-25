@@ -14,7 +14,6 @@ typedef struct {
     uint8_t width, height;
     uint16_t length;
     uint8_t *bytes, *bits;
-    bool has_ninth_bit;
     char *name;
 } Font;
 

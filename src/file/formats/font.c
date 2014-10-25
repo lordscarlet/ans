@@ -28,7 +28,6 @@ Font* get_preset_font(FontType type)
         font->height = cp437_8x16_height;
         font->length = cp437_8x16_length;
         font->bytes = cp437_8x16;
-        font->has_ninth_bit = cp437_8x16_has_ninth_bit;
         font->name = cp437_8x16_name;
         generate_bits(font);
         return font;
@@ -46,7 +45,6 @@ Font* create_and_load_font(uint8_t height, uint16_t length, FILE *file_ptr)
     font->height = height;
     font->length = length;
     font->bytes = malloc(font->height * font->length);
-    font->has_ninth_bit = false;
     font->name = NULL;
     fread(font->bytes, 1, font->height * font->length, file_ptr);
     generate_bits(font);
@@ -63,7 +61,6 @@ Font* create_font_from_bytes(uint8_t height, uint16_t length, uint8_t *bytes)
     font->length = length;
     bytes_length = font->height * font->length;
     font->bytes = malloc(bytes_length);
-    font->has_ninth_bit = false;
     memcpy(font->bytes, bytes, bytes_length);
     font->name   = NULL;
     generate_bits(font);

@@ -129,7 +129,7 @@ void draw_rgb_glyph(Canvas *canvas, uint8_t ascii_code, uint8_t *foreground, uin
         }
         if(letter_spacing)
         {
-            if(font->has_ninth_bit && ascii_code >= 179 && ascii_code <= 223)
+            if(ascii_code >= 192 && ascii_code <= 223)
             {
                 memcpy(canvas->data + i, canvas->data + i - 3, 3);
             }
@@ -167,7 +167,7 @@ void draw_glyph(Canvas *canvas, uint8_t ascii_code, uint8_t foreground, uint8_t 
         }
         if(letter_spacing)
         {
-            if(font->has_ninth_bit && ascii_code >= 192 && ascii_code <= 223)
+            if(ascii_code >= 192 && ascii_code <= 223)
             {
                 memcpy(canvas->data + i, canvas->data + i - 3, 3);
             }
