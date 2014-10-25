@@ -27,7 +27,7 @@ TextmodeDisplay* init_window(bool full_screen)
     else
     {
         display->width  = 640;
-        display->height = 400;
+        display->height = 480;
         SDL_CreateWindowAndRenderer(display->width, display->height, SDL_WINDOW_OPENGL, &display->window, &display->renderer);
     }
     if(display->window == NULL)

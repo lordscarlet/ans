@@ -2,6 +2,7 @@
 #define FONT_H_F21F0D19
 
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef enum {
     CUSTOM_FONT,
@@ -10,12 +11,11 @@ typedef enum {
 
 typedef struct {
     FontType type;
-    uint8_t  width;
-    uint8_t  height;
+    uint8_t width, height;
     uint16_t length;
-    uint8_t  *bytes;
-    uint8_t  *bits;
-    char     *name;
+    uint8_t *bytes, *bits;
+    bool has_ninth_bit;
+    char *name;
 } Font;
 
 Font* get_preset_font(FontType type);

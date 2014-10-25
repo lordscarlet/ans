@@ -27,8 +27,9 @@ Font* get_preset_font(FontType type)
         font->width  = cp437_8x16_width;
         font->height = cp437_8x16_height;
         font->length = cp437_8x16_length;
-        font->bytes  = cp437_8x16;
-        font->name   = cp437_8x16_name;
+        font->bytes = cp437_8x16;
+        font->has_ninth_bit = cp437_8x16_has_ninth_bit;
+        font->name = cp437_8x16_name;
         generate_bits(font);
         return font;
         default:
@@ -39,13 +40,14 @@ Font* get_preset_font(FontType type)
 
 Font* create_and_load_font(uint8_t height, uint16_t length, FILE *file_ptr)
 {
-    Font *font   = malloc(sizeof(Font));
-    font->type   = CUSTOM_FONT;
-    font->width  = 8;
+    Font *font = malloc(sizeof(Font));
+    font->type = CUSTOM_FONT;
+    font->width = 8;
     font->height = height;
     font->length = length;
-    font->bytes  = malloc(font->height * font->length);
-    font->name   = NULL;
+    font->bytes = malloc(font->height * font->length);
+    font->has_ninth_bit = false;
+    font->name = NULL;
     fread(font->bytes, 1, font->height * font->length, file_ptr);
     generate_bits(font);
     return font;
@@ -54,13 +56,14 @@ Font* create_and_load_font(uint8_t height, uint16_t length, FILE *file_ptr)
 Font* create_font_from_bytes(uint8_t height, uint16_t length, uint8_t *bytes)
 {
     uint32_t bytes_length;
-    Font *font   = malloc(sizeof(Font));
-    font->type   = CUSTOM_FONT;
-    font->width  = 8;
+    Font *font = malloc(sizeof(Font));
+    font->type = CUSTOM_FONT;
+    font->width = 8;
     font->height = height;
     font->length = length;
     bytes_length = font->height * font->length;
-    font->bytes  = malloc(bytes_length);
+    font->bytes = malloc(bytes_length);
+    font->has_ninth_bit = false;
     memcpy(font->bytes, bytes, bytes_length);
     font->name   = NULL;
     generate_bits(font);
