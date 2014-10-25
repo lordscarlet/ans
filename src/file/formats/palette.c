@@ -148,34 +148,38 @@ Palette* get_preset_palette(PaletteType type)
     switch(type)
     {
         case ASCII_PALETTE:
-        palette            = malloc(sizeof(Palette));
-        palette->data      = ascii_palette;
+        palette = malloc(sizeof(Palette));
+        palette->data = ascii_palette;
         palette->data_type = ascii_palette_data_type;
-        palette->length    = ascii_palette_length;
+        palette->length = ascii_palette_length;
+        palette->name = ascii_palette_name;
         break;
         case BINARY_PALETTE:
-        palette            = malloc(sizeof(Palette));
-        palette->data      = binary_palette;
+        palette = malloc(sizeof(Palette));
+        palette->data = binary_palette;
         palette->data_type = binary_palette_data_type;
-        palette->length    = binary_palette_length;
+        palette->length = binary_palette_length;
+        palette->name = binary_palette_name;
         break;
         case ANSI_PALETTE:
-        palette            = malloc(sizeof(Palette));
-        palette->data      = ansi_palette;
+        palette = malloc(sizeof(Palette));
+        palette->data = ansi_palette;
         palette->data_type = ansi_palette_data_type;
-        palette->length    = ansi_palette_length;
+        palette->length = ansi_palette_length;
+        palette->name = ansi_palette_name;
         break;
         case XTERM256_PALETTE:
-        palette            = malloc(sizeof(Palette));
-        palette->data      = xterm256_palette;
+        palette = malloc(sizeof(Palette));
+        palette->data = xterm256_palette;
         palette->data_type = xterm256_palette_data_type;
-        palette->length    = xterm256_palette_length;
+        palette->length = xterm256_palette_length;
+        palette->name = xterm256_palette_name;
         break;
         default:
         return NULL;
     }
-    palette->type   = type;
-    palette_end     = (size_t) palette->length * 3;
+    palette->type = type;
+    palette_end = (size_t) palette->length * 3;
     palette->rgb_data = malloc(sizeof(uint8_t) * palette_end);
     palette->lab_data = malloc(sizeof(double) * palette_end);
     generate_rgb_data(palette);
@@ -185,13 +189,14 @@ Palette* get_preset_palette(PaletteType type)
 Palette* create_new_palette(uint16_t palette_length, PaletteDataType data_type)
 {
     size_t palette_end = (size_t) palette_length * 3;
-    Palette *palette   = malloc(sizeof(Palette));
-    palette->type      = CUSTOM_PALETTE;
-    palette->length    = palette_length;
-    palette->data      = malloc(sizeof(uint8_t) * palette_end);
+    Palette *palette = malloc(sizeof(Palette));
+    palette->type = CUSTOM_PALETTE;
+    palette->length = palette_length;
+    palette->data = malloc(sizeof(uint8_t) * palette_end);
     palette->data_type = data_type;
-    palette->rgb_data  = malloc(sizeof(uint8_t) * palette_end);
-    palette->lab_data  = malloc(sizeof(double) * palette_end);
+    palette->rgb_data = malloc(sizeof(uint8_t) * palette_end);
+    palette->lab_data = malloc(sizeof(double) * palette_end);
+    palette->name = NULL;
     return palette;
 }
 

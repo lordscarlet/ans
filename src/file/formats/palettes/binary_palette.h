@@ -15,4 +15,6 @@ uint16_t binary_palette_length = 16;
 
 PaletteDataType binary_palette_data_type = PAL_DATA_18BIT;
 
+char *binary_palette_name = "Binary-ordered palette";
+
 #endif /* end of include guard: BINARY_H_C0CA099C */

@@ -15,4 +15,6 @@ uint16_t ansi_palette_length = 16;
 
 PaletteDataType ansi_palette_data_type = PAL_DATA_18BIT;
 
+char *ansi_palette_name = "ANSI-ordered palette";
+
 #endif /* end of include guard: ANSI_PALETTE_H_4B952AF4 */

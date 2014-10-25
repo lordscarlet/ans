@@ -12,4 +12,6 @@ uint16_t ascii_palette_length = 2;
 
 PaletteDataType ascii_palette_data_type = PAL_DATA_18BIT;
 
+char *ascii_palette_name = "ASCII 1Bit palette";
+
 #endif /* end of include guard: ASCII_PALETTE_H_B5DE4999 */

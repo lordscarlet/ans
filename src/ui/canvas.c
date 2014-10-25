@@ -438,31 +438,22 @@ SDL_Texture* create_info_texture(SDL_Renderer *renderer, Canvas *text_art_canvas
     }
     sprintf(string, "%d columns x %d rows", screen->columns, screen->rows);
     draw_text(canvas, string, strlen(string), 0, 7, 20, 2, palette, font);
-    if(screen->type == CHARACTERS || screen->type == RGB_DATA)
+    if(screen->type == RGB_DATA)
     {
         draw_text(canvas, "None", 4, 0, 7, 20, 3, palette, font);
         draw_text(canvas, "N/A", 3, 0, 7, 20, 4, palette, font);
     }
     else
     {
-        switch(screen->palette->type)
+        if(screen->palette->type == CUSTOM_PALETTE)
         {
-            case CUSTOM_PALETTE:
             draw_text(canvas, "Included in file", 16, 0, 7, 20, 3, palette, font);
-            break;
-            case BINARY_PALETTE:
-            draw_text(canvas, "Binary-ordered palette", 22, 0, 7, 20, 3, palette, font);
-            break;
-            case ANSI_PALETTE:
-            draw_text(canvas, "ANSI-ordered palette", 20, 0, 7, 20, 3, palette, font);
-            break;
-            case XTERM256_PALETTE:
-            draw_text(canvas, "XTerm256 palette", 60, 0, 7, 20, 3, palette, font);
-            break;
-            default:
-            break;
         }
-        for(size_t i = 0; i < 16; i += 1)
+        else
+        {
+            draw_text(canvas, screen->palette->name, strlen(screen->palette->name), 0, 7, 20, 3, palette, font);
+        }
+        for(size_t i = 0; i < screen->palette->length; i += 1)
         {
             for(size_t j = 0; j < 2; j += 1)
             {

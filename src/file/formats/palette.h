@@ -18,12 +18,13 @@ typedef enum {
 } PaletteDataType;
 
 typedef struct {
-    PaletteType     type;
-    uint8_t         *data;
+    PaletteType type;
+    uint8_t *data;
     PaletteDataType data_type;
-    uint8_t         *rgb_data;
-    double          *lab_data;
-    uint16_t        length;
+    uint8_t *rgb_data;
+    double *lab_data;
+    uint16_t length;
+    char *name;
 } Palette;
 
 void generate_rgb_data(Palette *palette);

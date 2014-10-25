@@ -75,4 +75,6 @@ uint16_t xterm256_palette_length = 256;
 
 PaletteDataType xterm256_palette_data_type = PAL_DATA_24BIT;
 
+char *xterm256_palette_name = "XTerm256 palette";
+
 #endif /* end of include guard: XTERM256_PALETTE_H_B150CF06 */
