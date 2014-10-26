@@ -341,12 +341,22 @@ Overlay *create_glyph_overlay(uint32_t width, uint32_t height, SDL_Renderer *ren
     return overlay;
 }
 
-OverlayCollection *create_overlays(uint32_t width, uint32_t height, SDL_Renderer *renderer, Canvas *canvas, char **filenames, uint32_t filenames_length, uint16_t current_filename_index, ViewPrefs *view_prefs)
+Overlay *create_caption_overlay(uint32_t width, uint32_t height, SDL_Renderer *renderer, Canvas *canvas, Palette *palette, Font *font, char *caption)
+{
+    SDL_Texture *texture = create_caption_texture(renderer, caption, palette, font);
+    Overlay *overlay;
+    overlay = create_overlay(texture);
+    overlay->dst_rect.x = (width - overlay->width) / 2;
+    overlay->dst_rect.y = 16;
+    return overlay;
+}
+
+OverlayCollection *create_overlays(uint32_t width, uint32_t height, SDL_Renderer *renderer, Canvas *canvas, char **filenames, uint32_t filenames_length, uint16_t current_filename_index, ViewPrefs *view_prefs, char *caption)
 {
     Palette *palette = get_preset_palette(ANSI_PALETTE);
     Font *font = get_preset_font(CP437_8x16);
     OverlayCollection *overlay_collection = malloc(sizeof(OverlayCollection));
-    overlay_collection->length = 5;
+    overlay_collection->length = 6;
     overlay_collection->data = malloc(sizeof(Overlay*) * overlay_collection->length);
     overlay_collection->data[0] = create_title_overlay(width, height, renderer, canvas, palette, font);
     if(view_prefs->title)
@@ -373,6 +383,11 @@ OverlayCollection *create_overlays(uint32_t width, uint32_t height, SDL_Renderer
     {
         overlay_collection->data[4]->visible = true;
     }
+    overlay_collection->data[5] = create_caption_overlay(width, height, renderer, canvas, palette, font, caption);
+    if(caption != NULL)
+    {
+        overlay_collection->data[5]->visible = true;
+    }
     free_palette(palette);
     free_font(font);
     return overlay_collection;
@@ -380,7 +395,10 @@ OverlayCollection *create_overlays(uint32_t width, uint32_t height, SDL_Renderer
 
 void free_overlay(Overlay *overlay)
 {
-    SDL_DestroyTexture(overlay->texture);
+    if(overlay->texture != NULL)
+    {
+        SDL_DestroyTexture(overlay->texture);
+    }
     free(overlay);
 }
 
@@ -394,14 +412,15 @@ void free_overlays(OverlayCollection *overlays)
     free(overlays);
 }
 
-EventLoopReturnType event_loop(uint32_t width, uint32_t height, SDL_Renderer *renderer, Canvas *canvas, char **filenames, uint32_t filenames_length, uint16_t *current_filename_index, ViewPrefs *view_prefs, int32_t *x_pos, int32_t *y_pos)
+EventLoopReturnType event_loop(uint32_t width, uint32_t height, SDL_Renderer *renderer, Canvas *canvas, char **filenames, uint32_t filenames_length, uint16_t *current_filename_index, ViewPrefs *view_prefs, int32_t *x_pos, int32_t *y_pos, char *caption)
 {
     TextureCollection *textures = create_textures(renderer, canvas);
-    OverlayCollection *overlays = create_overlays(width, height, renderer, canvas, filenames, filenames_length, *current_filename_index, view_prefs);
+    OverlayCollection *overlays = create_overlays(width, height, renderer, canvas, filenames, filenames_length, *current_filename_index, view_prefs, caption);
     SDL_Joystick *joystick = SDL_JoystickOpen(0);
     SDL_Event event;
     EventLoopReturnType event_return;
     uint32_t new_ticks, ticks = SDL_GetTicks();
+    size_t tick_counter = 0;
     bool show_blink_state = false;
     generate_initial_textures(renderer, textures);
     draw_textures(width, height, renderer, textures, show_blink_state, overlays, x_pos, y_pos);
@@ -438,6 +457,11 @@ EventLoopReturnType event_loop(uint32_t width, uint32_t height, SDL_Renderer *re
             if(event_return == EVENT_LOOP_NONE)
             {
                 draw_textures(width, height, renderer, textures, show_blink_state, overlays, x_pos, y_pos);
+            }
+            tick_counter += 1;
+            if(tick_counter == 5)
+            {
+                overlays->data[5]->visible = false;
             }
         }
         switch(event_return)

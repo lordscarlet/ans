@@ -49,6 +49,8 @@ SDL_Texture* create_info_texture(SDL_Renderer *renderer, Canvas *text_art_canvas
 
 SDL_Texture* create_glyph_texture(SDL_Renderer *renderer, Canvas *text_art_canvas, Palette *palette);
 
+SDL_Texture* create_caption_texture(SDL_Renderer *renderer, char *string, Palette *palette, Font *font);
+
 Canvas* screen_to_canvas(Screen *screen);
 
 #endif /* end of include guard: CANVAS_H_FC7B83B1 */

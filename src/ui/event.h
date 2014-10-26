@@ -20,6 +20,6 @@ typedef enum {
     EVENT_LOOP_SAUCE
 } EventLoopReturnType;
 
-EventLoopReturnType event_loop(uint32_t width, uint32_t height, SDL_Renderer *renderer, Canvas *canvas, char **filenames, uint32_t filenames_length, uint16_t *current_filename_index, ViewPrefs *view_prefs, int32_t *x_pos, int32_t *y_pos);
+EventLoopReturnType event_loop(uint32_t width, uint32_t height, SDL_Renderer *renderer, Canvas *canvas, char **filenames, uint32_t filenames_length, uint16_t *current_filename_index, ViewPrefs *view_prefs, int32_t *x_pos, int32_t *y_pos, char *caption);
 
 #endif /* end of include guard: EVENT_H_B8F487E5 */

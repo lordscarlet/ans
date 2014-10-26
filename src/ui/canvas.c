@@ -565,6 +565,25 @@ SDL_Texture* create_glyph_texture(SDL_Renderer *renderer, Canvas *text_art_canva
     return texture;
 }
 
+SDL_Texture* create_caption_texture(SDL_Renderer *renderer, char *caption, Palette *palette, Font *font)
+{
+    SDL_Texture *texture;
+    size_t caption_length;
+    Canvas *canvas;
+    if(caption == NULL)
+    {
+        return NULL;
+    }
+    caption_length = strlen(caption);
+    canvas = create_canvas((caption_length + 4) * font->width, font->height * 3);
+    draw_box(canvas, font, palette, 15, 6, false);
+    draw_text(canvas, caption, caption_length, 15, 6, 2, 1, palette, font);
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_RENDERER_ACCELERATED, canvas->width, canvas->height);
+    SDL_UpdateTexture(texture, NULL, canvas->data, canvas->width * 3);
+    free_canvas(canvas);
+    return texture;
+}
+
 Canvas* screen_to_canvas(Screen *screen)
 {
     Canvas  *canvas;
