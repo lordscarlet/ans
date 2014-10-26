@@ -358,8 +358,8 @@ OverlayCollection *create_overlays(uint32_t width, uint32_t height, SDL_Renderer
     OverlayCollection *overlay_collection = malloc(sizeof(OverlayCollection));
     overlay_collection->length = 6;
     overlay_collection->data = malloc(sizeof(Overlay*) * overlay_collection->length);
-    overlay_collection->data[0] = create_title_overlay(width, height, renderer, canvas, palette, font);
-    if(view_prefs->title)
+    overlay_collection->data[0] = create_caption_overlay(width, height, renderer, canvas, palette, font, caption);
+    if(caption != NULL)
     {
         overlay_collection->data[0]->visible = true;
     }
@@ -383,8 +383,8 @@ OverlayCollection *create_overlays(uint32_t width, uint32_t height, SDL_Renderer
     {
         overlay_collection->data[4]->visible = true;
     }
-    overlay_collection->data[5] = create_caption_overlay(width, height, renderer, canvas, palette, font, caption);
-    if(caption != NULL)
+    overlay_collection->data[5] = create_title_overlay(width, height, renderer, canvas, palette, font);
+    if(view_prefs->title)
     {
         overlay_collection->data[5]->visible = true;
     }
@@ -461,7 +461,7 @@ EventLoopReturnType event_loop(uint32_t width, uint32_t height, SDL_Renderer *re
             tick_counter += 1;
             if(tick_counter == 5)
             {
-                overlays->data[5]->visible = false;
+                overlays->data[0]->visible = false;
             }
         }
         switch(event_return)
@@ -474,12 +474,9 @@ EventLoopReturnType event_loop(uint32_t width, uint32_t height, SDL_Renderer *re
             return event_return;
             break;
             case EVENT_LOOP_TITLE:
-            if(overlays->data[0] != NULL)
-            {
-                view_prefs->title = !overlays->data[0]->visible;
-                overlays->data[0]->visible = view_prefs->title;
-                draw_textures(width, height, renderer, textures, show_blink_state, overlays, x_pos, y_pos);
-            }
+            view_prefs->title = !overlays->data[5]->visible;
+            overlays->data[5]->visible = view_prefs->title;
+            draw_textures(width, height, renderer, textures, show_blink_state, overlays, x_pos, y_pos);
             break;
             case EVENT_LOOP_FILE_LIST:
             view_prefs->file_list = !overlays->data[2]->visible;
