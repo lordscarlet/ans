@@ -77,6 +77,9 @@ void display_window(char **filenames, uint32_t filenames_length, bool display_fu
                 case EVENT_LOOP_LETTER_SPACING:
                 file->screen->letter_spacing = !file->screen->letter_spacing;
                 break;
+                case EVENT_LOOP_BLINK:
+                file->screen->non_blink = !file->screen->non_blink;
+                break;
                 default:
                 file = read_text_art_file(filenames[i]);
                 x_pos = ((int32_t) display->width - (int32_t) canvas->width) / 2;

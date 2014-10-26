@@ -64,14 +64,27 @@ TextureCollection* create_textures(SDL_Renderer *renderer, Canvas *canvas)
     if(textures->length > 0)
     {
         textures->data = malloc(sizeof(SDL_Texture*) * textures->length);
+        if(canvas->blink_data != NULL)
+        {
+            textures->blink_data = malloc(sizeof(SDL_Texture*) * textures->length);
+        }
+        else
+        {
+            textures->blink_data = NULL;
+        }
         for(uint32_t i = 0; i < textures->length; i += 1)
         {
             textures->data[i] = NULL;
+            if(textures->blink_data != NULL)
+            {
+                textures->blink_data[i] = NULL;
+            }
         }
     }
     else
     {
         textures->data = NULL;
+        textures->blink_data = NULL;
     }
     return textures;
 }
@@ -89,6 +102,11 @@ void render_texture(SDL_Renderer *renderer, TextureCollection *textures, uint32_
     }
     textures->data[i] = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_RENDERER_ACCELERATED, textures->canvas->width, height);
     SDL_UpdateTexture(textures->data[i], NULL, textures->canvas->data + textures->canvas->width * textures->max_height * 3 * i, textures->canvas->width * 3);
+    if(textures->blink_data != NULL)
+    {
+        textures->blink_data[i] = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_RENDERER_ACCELERATED, textures->canvas->width, height);
+        SDL_UpdateTexture(textures->blink_data[i], NULL, textures->canvas->blink_data + textures->canvas->width * textures->max_height * 3 * i, textures->canvas->width * 3);
+    }
 }
 
 void free_textures(TextureCollection *textures)
@@ -100,6 +118,10 @@ void free_textures(TextureCollection *textures)
             if(textures->data[i] != NULL)
             {
                 SDL_DestroyTexture(textures->data[i]);
+                if(textures->blink_data != NULL)
+                {
+                    SDL_DestroyTexture(textures->blink_data[i]);
+                }
             }
         }
         free(textures);
@@ -142,12 +164,21 @@ void draw_rgb_glyph(Canvas *canvas, uint8_t ascii_code, uint8_t *foreground, uin
     }
 }
 
-void draw_glyph(Canvas *canvas, uint8_t ascii_code, uint8_t foreground, uint8_t background, uint16_t x, uint16_t y, Palette *palette, Font *font, bool letter_spacing)
+void draw_glyph(Canvas *canvas, uint8_t ascii_code, uint8_t foreground, uint8_t background, uint16_t x, uint16_t y, Palette *palette, Font *font, bool letter_spacing, bool blink_data)
 {
     uint32_t ascii_code_pos = ascii_code * font->width * font->height;
     uint8_t palette_foreground_pos = foreground * 3;
     uint8_t palette_background_pos = background * 3;
     size_t font_width = font->width;
+    uint8_t *data;
+    if(blink_data)
+    {
+        data = canvas->blink_data;
+    }
+    else
+    {
+        data = canvas->data;
+    }
     if(letter_spacing)
     {
         font_width += 1;
@@ -158,22 +189,22 @@ void draw_glyph(Canvas *canvas, uint8_t ascii_code, uint8_t foreground, uint8_t 
         {
             if(font->bits[ascii_code_pos] == 1)
             {
-                memcpy(canvas->data + i, palette->rgb_data + palette_foreground_pos, 3);
+                memcpy(data + i, palette->rgb_data + palette_foreground_pos, 3);
             }
             else
             {
-                memcpy(canvas->data + i, palette->rgb_data + palette_background_pos, 3);
+                memcpy(data + i, palette->rgb_data + palette_background_pos, 3);
             }
         }
         if(letter_spacing)
         {
             if(ascii_code >= 192 && ascii_code <= 223)
             {
-                memcpy(canvas->data + i, canvas->data + i - 3, 3);
+                memcpy(data + i, data + i - 3, 3);
             }
             else
             {
-                memcpy(canvas->data + i, palette->rgb_data + palette_background_pos, 3);
+                memcpy(data + i, palette->rgb_data + palette_background_pos, 3);
             }
         }
         i += (canvas->width - font->width) * 3;
@@ -184,26 +215,26 @@ void draw_box(Canvas *canvas, Font *font, Palette *palette, uint8_t foreground, 
 {
     uint16_t columns = canvas->width / font->width;
     uint16_t rows = canvas->height / font->height;
-    draw_glyph(canvas, 201, foreground, background, 0, 0, palette, font, letter_spacing);
-    draw_glyph(canvas, 200, foreground, background, 0, rows - 1, palette, font, letter_spacing);
-    draw_glyph(canvas, 187, foreground, background, columns - 1, 0, palette, font, letter_spacing);
-    draw_glyph(canvas, 187, foreground, background, columns - 1, 0, palette, font, letter_spacing);
-    draw_glyph(canvas, 188, foreground, background, columns - 1, rows - 1, palette, font, letter_spacing);
+    draw_glyph(canvas, 201, foreground, background, 0, 0, palette, font, letter_spacing, false);
+    draw_glyph(canvas, 200, foreground, background, 0, rows - 1, palette, font, letter_spacing, false);
+    draw_glyph(canvas, 187, foreground, background, columns - 1, 0, palette, font, letter_spacing, false);
+    draw_glyph(canvas, 187, foreground, background, columns - 1, 0, palette, font, letter_spacing, false);
+    draw_glyph(canvas, 188, foreground, background, columns - 1, rows - 1, palette, font, letter_spacing, false);
     for(uint16_t x = 1; x < columns - 1; x += 1)
     {
-        draw_glyph(canvas, 205, foreground, background, x, 0, palette, font, letter_spacing);
-        draw_glyph(canvas, 205, foreground, background, x, rows - 1, palette, font, letter_spacing);
+        draw_glyph(canvas, 205, foreground, background, x, 0, palette, font, letter_spacing, false);
+        draw_glyph(canvas, 205, foreground, background, x, rows - 1, palette, font, letter_spacing, false);
     }
     for(uint16_t y = 1; y < rows - 1; y += 1)
     {
-        draw_glyph(canvas, 186, foreground, background, 0, y, palette, font, letter_spacing);
-        draw_glyph(canvas, 186, foreground, background, columns - 1, y, palette, font, letter_spacing);
+        draw_glyph(canvas, 186, foreground, background, 0, y, palette, font, letter_spacing, false);
+        draw_glyph(canvas, 186, foreground, background, columns - 1, y, palette, font, letter_spacing, false);
     }
     for(uint16_t y = 1; y < rows - 1; y += 1)
     {
         for(uint16_t x = 1; x < columns - 1; x += 1)
         {
-            draw_glyph(canvas, 0, foreground, background, x, y, palette, font, letter_spacing);
+            draw_glyph(canvas, 0, foreground, background, x, y, palette, font, letter_spacing, false);
         }
     }
 }
@@ -212,7 +243,7 @@ void draw_text(Canvas *canvas, char *text, size_t length, uint8_t foreground, ui
 {
     for(size_t i = 0; i < length; i += 1)
     {
-        draw_glyph(canvas, (uint8_t) text[i], foreground, background, x + i, y, palette, font, false);
+        draw_glyph(canvas, (uint8_t) text[i], foreground, background, x + i, y, palette, font, false, false);
     }
 }
 
@@ -222,7 +253,7 @@ void draw_number(Canvas *canvas, int64_t number, uint8_t foreground, uint8_t bac
     int length = sprintf(string, "%lld", number);
     for(size_t i = 0; i < length; i += 1)
     {
-        draw_glyph(canvas, (uint8_t) string[i], foreground, background, x + i, y, palette, font, false);
+        draw_glyph(canvas, (uint8_t) string[i], foreground, background, x + i, y, palette, font, false, false);
     }
 }
 
@@ -453,7 +484,7 @@ SDL_Texture* create_info_texture(SDL_Renderer *renderer, Canvas *text_art_canvas
         {
             for(size_t j = 0; j < 2; j += 1)
             {
-                draw_glyph(canvas, 219, i, 0, 20 + i * 2 + j, 4, screen->palette, font, false);
+                draw_glyph(canvas, 219, i, 0, 20 + i * 2 + j, 4, screen->palette, font, false, false);
             }
         }
     }
@@ -525,7 +556,7 @@ SDL_Texture* create_glyph_texture(SDL_Renderer *renderer, Canvas *text_art_canva
     {
         for(size_t x = 0; x < 32; x += 1, i += 1)
         {
-                draw_glyph(canvas, i, 0, 7, x + 1, y + 1, palette, screen->font, screen->letter_spacing);
+                draw_glyph(canvas, i, 0, 7, x + 1, y + 1, palette, screen->font, screen->letter_spacing, false);
         }
     }
     texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_RENDERER_ACCELERATED, canvas->width, canvas->height);
@@ -539,6 +570,7 @@ Canvas* screen_to_canvas(Screen *screen)
     Canvas  *canvas;
     uint8_t ascii_code, foreground, background;
     uint8_t *draw_foreground, *draw_background;
+    bool has_blink_data = false;
     if(screen->letter_spacing)
     {
          canvas = create_canvas(screen->columns * (screen->font->width + 1), screen->rows * screen->font->height);
@@ -555,9 +587,10 @@ Canvas* screen_to_canvas(Screen *screen)
             for(uint32_t x = 0; x < screen->columns; x += 1, i += 1)
             {
                 ascii_code = screen->data[i];
-                draw_glyph(canvas, ascii_code, 1, 0, x, y, screen->palette, screen->font, screen->letter_spacing);
+                draw_glyph(canvas, ascii_code, 1, 0, x, y, screen->palette, screen->font, screen->letter_spacing, false);
             }
         }
+        canvas->blink_data = NULL;
         break;
         case CHARACTER_AND_ATTRIBUTE_PAIR:
         for(uint32_t y = 0, i = 0; y < screen->rows; y += 1)
@@ -570,9 +603,32 @@ Canvas* screen_to_canvas(Screen *screen)
                 if(!screen->non_blink && background >= 8)
                 {
                     background -= 8;
+                    has_blink_data = true;
                 }
-                draw_glyph(canvas, ascii_code, foreground, background, x, y, screen->palette, screen->font, screen->letter_spacing);
+                draw_glyph(canvas, ascii_code, foreground, background, x, y, screen->palette, screen->font, screen->letter_spacing, false);
             }
+        }
+        if(has_blink_data)
+        {
+            canvas->blink_data = malloc((size_t) canvas->length);
+            memcpy(canvas->blink_data, canvas->data, canvas->length);
+            for(uint32_t y = 0, i = 0; y < screen->rows; y += 1)
+            {
+                for(uint32_t x = 0; x < screen->columns; x += 1, i += 2)
+                {
+                    background = screen->data[i + 1] >> 4;
+                    if(background >= 8)
+                    {
+                        ascii_code = screen->data[i];
+                        background -= 8;
+                        draw_glyph(canvas, ascii_code, background, background, x, y, screen->palette, screen->font, screen->letter_spacing, true);
+                    }
+                }
+            }
+        }
+        else
+        {
+            canvas->blink_data = NULL;
         }
         break;
         case RGB_DATA:
@@ -584,6 +640,7 @@ Canvas* screen_to_canvas(Screen *screen)
                 draw_rgb_glyph(canvas, ascii_code, screen->data + i + 1, screen->data + i + 4, x, y, screen->font, screen->letter_spacing);
             }
         }
+        canvas->blink_data = NULL;
         break;
         case CHARACTER_AND_ATTRIBUTE_PAIR_WITH_RGB:
         for(uint32_t y = 0, i = 0; y < screen->rows; y += 1)
@@ -596,6 +653,10 @@ Canvas* screen_to_canvas(Screen *screen)
                 if(!screen->non_blink && background >= 8)
                 {
                     background -= 8;
+                    if(screen->data[i + 2] == NON_RGB_ATTRIBUTE_DATA && screen->data[i + 6] == NON_RGB_ATTRIBUTE_DATA)
+                    {
+                        has_blink_data = true;
+                    }
                 }
                 if(screen->data[i + 2] == NON_RGB_ATTRIBUTE_DATA)
                 {
@@ -616,6 +677,7 @@ Canvas* screen_to_canvas(Screen *screen)
                 draw_rgb_glyph(canvas, ascii_code, draw_foreground, draw_background, x, y, screen->font, screen->letter_spacing);
             }
         }
+        canvas->blink_data = NULL;
         break;
     }
     return canvas;

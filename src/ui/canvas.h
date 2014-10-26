@@ -11,14 +11,14 @@ typedef struct
 {
     uint32_t width;
     uint32_t height;
-    uint8_t *data;
+    uint8_t *data, *blink_data;
     uint32_t length;
     TextArtFile *file;
 } Canvas;
 
 typedef struct
 {
-    SDL_Texture **data;
+    SDL_Texture **data, **blink_data;
     uint32_t width;
     uint32_t height;
     uint32_t length;
