@@ -252,8 +252,8 @@ TextArtFile* load_ansi_file(char *filename)
                 escaped = false;
                 break;
                 case 's':
-                stored_x = x + 1;
-                stored_y = y + 1;
+                stored_x = x;
+                stored_y = y;
                 escaped = false;
                 break;
                 case 't':
